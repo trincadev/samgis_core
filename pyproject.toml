@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "samgis_core"
+version = "1.0.0"
+description = "SamGIS CORE"
+authors = ["alessandro trinca tornidor <alessandro@trinca.tornidor.com>"]
+license = "MIT license"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+numpy = "^1.26.3"
+pillow = "^10.2.0"
+python = "^3.11"
+onnxruntime = "^1.16.3"
+opencv-python-headless = "^4.9.0.80"
+loguru = "^0.7.2"
+bson = "^0.5.10"
+
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.3"
+pytest-cov = "^4.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
