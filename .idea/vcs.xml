@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../lisa_on_cuda" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../samgis-be" vcs="Git" />
   </component>
 </project>
