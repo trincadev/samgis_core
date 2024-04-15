@@ -1,4 +1,6 @@
 """custom type hints"""
+from enum import Enum
+
 from PIL.Image import Image
 from numpy import ndarray
 
@@ -14,3 +16,7 @@ llist_float = list[list_float]
 tuple_float = tuple[float]
 tuple_float_any = tuple[float, any]
 PIL_Image = Image
+
+
+class StrEnum(str, Enum):
+    pass
