@@ -114,7 +114,7 @@ class SegmentAnythingONNX:
         return coords
 
     def run_decoder(
-        self, image_embedding, original_size, transform_matrix, prompt
+            self, image_embedding, original_size, transform_matrix, prompt
     ):
         """Run decoder"""
         input_points, input_labels = self.get_input_points(prompt)
@@ -124,8 +124,8 @@ class SegmentAnythingONNX:
             [input_points, np_array([[0.0, 0.0]])], axis=0
         )[None, :, :]
         onnx_label = concatenate([input_labels, np_array([-1])], axis=0)[
-            None, :
-        ].astype(float32)
+                     None, :
+                     ].astype(float32)
         onnx_coord = self.apply_coords(
             onnx_coord, self.input_size, self.target_size
         ).astype(float32)
@@ -186,7 +186,8 @@ class SegmentAnythingONNX:
                     )
                 except Exception as e_warp_affine1:
                     app_logger.error(f"e_warp_affine1 mask shape:{mask.shape}, dtype:{mask.dtype}.")
-                    app_logger.error(f"e_warp_affine1 transform_matrix:{transform_matrix}, [:2] {transform_matrix[:2]}.")
+                    app_logger.error(
+                        f"e_warp_affine1 transform_matrix:{transform_matrix}, [:2] {transform_matrix[:2]}.")
                     app_logger.error(f"e_warp_affine1 original_size:{original_size}.")
                     raise e_warp_affine1
                 batch_masks.append(mask)
@@ -251,7 +252,7 @@ class SegmentAnythingONNX:
 
 def get_raster_inference(
         img: PIL_Image or ndarray, prompt: list_dict, models_instance: SegmentAnythingONNX, model_name: str
-     ) -> tuple_ndarr_int:
+) -> tuple_ndarr_int:
     """
     Get inference output for a given image using a SegmentAnythingONNX model
 
@@ -275,6 +276,56 @@ def get_raster_inference(
                     f"DECODER {MODEL_DECODER_NAME} from {MODEL_FOLDER}: Creating embedding...")
     embedding = models_instance.encode(np_img)
     app_logger.debug(f"embedding created, running predict_masks with prompt {prompt}...")
+    return get_raster_inference_using_existing_embedding(embedding, prompt, models_instance)
+
+
+def get_inference_embedding(
+        img: PIL_Image or ndarray, models_instance: SegmentAnythingONNX, model_name: str, embedding_key: str,
+        embedding_dict: dict) -> dict:
+    """add an embedding to the embedding dict if needed
+
+    Args:
+        img: input PIL Image
+        models_instance: SegmentAnythingONNX instance model
+        model_name: model name string
+        embedding_key: embedding id
+        embedding_dict: embedding dict object
+
+    Returns:
+        raster dict
+    """
+    if embedding_key in embedding_dict:
+        app_logger.info(f"found embedding in dict...")
+    if embedding_key not in embedding_dict:
+        np_img = np_array(img)
+        app_logger.info(f"prepare embedding using img type {type(np_img)}.")
+        app_logger.debug(f"onnxruntime input shape/size (shape if PIL) {np_img.size}.")
+        try:
+            app_logger.debug(f"onnxruntime input shape (NUMPY) {np_img.shape}.")
+        except Exception as e_shape:
+            app_logger.error(f"e_shape:{e_shape}.")
+        app_logger.info(f"instantiated model {model_name}, ENCODER {MODEL_ENCODER_NAME}, "
+                        f"DECODER {MODEL_DECODER_NAME} from {MODEL_FOLDER}: Creating embedding...")
+        embedding = models_instance.encode(np_img)
+        embedding_dict[embedding_key] = embedding
+    return embedding_dict
+
+
+def get_raster_inference_using_existing_embedding(
+        embedding: dict, prompt: list_dict, models_instance: SegmentAnythingONNX) -> tuple_ndarr_int:
+    """
+    Get inference output for a given image using a SegmentAnythingONNX model, using an existing embedding instead of a
+    new ndarray or PIL image
+
+    Args:
+        embedding: dict
+        prompt: list of prompt dict
+        models_instance: SegmentAnythingONNX instance model
+
+    Returns:
+        raster prediction mask, prediction number
+    """
+    app_logger.info(f"using existing embedding of type {type(embedding)}.")
     inference_out = models_instance.predict_masks(embedding, prompt)
     len_inference_out = len(inference_out[0, :, :, :])
     app_logger.info(f"Created {len_inference_out} prediction_masks,"
@@ -285,3 +336,30 @@ def get_raster_inference(
                          f" => mask shape:{mask.shape}, {mask.dtype}.")
         mask[m > 0.0] = 255
     return mask, len_inference_out
+
+
+def get_raster_inference_with_embedding_from_dict(
+        img: PIL_Image or ndarray, prompt: list_dict, models_instance: SegmentAnythingONNX, model_name: str,
+        embedding_key: str, embedding_dict: dict) -> tuple_ndarr_int:
+    """
+    Get inference output using a SegmentAnythingONNX model, but get the image embedding from the given embedding dict
+     instead of creating a new embedding. This function needs the img argument to update the embedding dict if necessary
+
+    Args:
+        img: input PIL Image
+        prompt: list of prompt dict
+        models_instance: SegmentAnythingONNX instance model
+        model_name: model name string
+        embedding_key: embedding id
+        embedding_dict: embedding dict object
+
+    Returns:
+        raster prediction mask, prediction number
+    """
+    app_logger.info(f"handling embedding using key {embedding_key}.")
+    embedding_dict = get_inference_embedding(img, models_instance, model_name, embedding_key, embedding_dict)
+    app_logger.info(f"getting embedding with key {embedding_key} from dict...")
+    embedding = embedding_dict[embedding_key]
+    n_keys = len(embedding_dict)
+    app_logger.info(f"embedding created ({n_keys} keys in embedding dict), running predict_masks with prompt {prompt}.")
+    return get_raster_inference_using_existing_embedding(embedding, prompt, models_instance)
