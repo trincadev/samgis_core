@@ -1,8 +1,10 @@
 import loguru
 
 
-def setup_logging(debug: bool = False, formatter: str = "{time} - {level} - ({extra[request_id]}) {message} "
-                  ) -> loguru.logger:
+format_string = "{time} - {level} - {file} - {function} - ({extra[request_id]}) {message} "
+
+
+def setup_logging(debug: bool = False, formatter: str = format_string) -> loguru.logger:
     """
     Create a logging instance with log string formatter.
 
