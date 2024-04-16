@@ -32,7 +32,7 @@ from onnxruntime import get_available_providers, InferenceSession
 
 from samgis_core import app_logger, MODEL_FOLDER
 from samgis_core.utilities.constants import DEFAULT_INPUT_SHAPE, MODEL_ENCODER_NAME, MODEL_DECODER_NAME
-from samgis_core.utilities.type_hints import PIL_Image, list_dict, tuple_ndarr_int
+from samgis_core.utilities.type_hints import PIL_Image, list_dict, tuple_ndarr_int, EmbeddingDict, EmbeddingImage
 
 
 class SegmentAnythingONNX:
@@ -194,7 +194,7 @@ class SegmentAnythingONNX:
             output_masks.append(batch_masks)
         return np_array(output_masks)
 
-    def encode(self, cv_image):
+    def encode(self, cv_image: ndarray) -> EmbeddingImage:
         """
         Calculate embedding and metadata for a single image.
         """
@@ -281,7 +281,7 @@ def get_raster_inference(
 
 def get_inference_embedding(
         img: PIL_Image or ndarray, models_instance: SegmentAnythingONNX, model_name: str, embedding_key: str,
-        embedding_dict: dict) -> dict:
+        embedding_dict: EmbeddingDict) -> EmbeddingDict:
     """add an embedding to the embedding dict if needed
 
     Args:
@@ -295,7 +295,7 @@ def get_inference_embedding(
         raster dict
     """
     if embedding_key in embedding_dict:
-        app_logger.info(f"found embedding in dict...")
+        app_logger.info("found embedding in dict...")
     if embedding_key not in embedding_dict:
         np_img = np_array(img)
         app_logger.info(f"prepare embedding using img type {type(np_img)}.")
