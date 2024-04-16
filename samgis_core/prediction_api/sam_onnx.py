@@ -197,6 +197,12 @@ class SegmentAnythingONNX:
     def encode(self, cv_image: ndarray) -> EmbeddingImage:
         """
         Calculate embedding and metadata for a single image.
+
+        Args:
+            cv_image: input image to embed
+
+        Returns:
+            embedding image dict useful to store and cache image embeddings
         """
         original_size = cv_image.shape[:2]
 
@@ -351,7 +357,7 @@ def get_raster_inference_with_embedding_from_dict(
         models_instance: SegmentAnythingONNX instance model
         model_name: model name string
         embedding_key: embedding id
-        embedding_dict: embedding dict object
+        embedding_dict: embedding images dict
 
     Returns:
         raster prediction mask, prediction number
