@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "samgis_core"
-version = "1.1.0"
+version = "1.1.1"
 description = "SamGIS CORE"
 authors = ["alessandro trinca tornidor <alessandro@trinca.tornidor.com>"]
 license = "MIT license"
@@ -8,7 +8,7 @@ readme = "README.md"
 
 [metadata]
 name = "samgis_core"
-version = "1.0.8"
+version = "1.1.1"
 
 [tool.poetry.dependencies]
 numpy = "1.25.2"
