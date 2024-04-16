@@ -9,7 +9,7 @@ from samgis_core import MODEL_FOLDER
 from samgis_core.prediction_api.sam_onnx import SegmentAnythingONNX
 
 from samgis_core.prediction_api import sam_onnx
-from samgis_core.prediction_api.sam_onnx import get_raster_inference
+from samgis_core.prediction_api.sam_onnx import get_raster_inference, get_raster_inference_with_embedding_from_dict
 from samgis_core.utilities.constants import MODEL_ENCODER_NAME, MODEL_DECODER_NAME
 from samgis_core.utilities.utilities import hash_calculate
 from tests import TEST_EVENTS_FOLDER
@@ -26,6 +26,22 @@ prompt = [{
     "label": 0
 }]
 
+
+def assert_helper_get_raster_inference_with_embedding_from_dict(
+        embedding_dict_test: dict,
+        n_keys: int,
+        name_key,
+        shape_transform_matrix=(3, 3),
+        shape_image_embedding=(1, 256, 64, 64)
+    ):
+    assert len(embedding_dict_test) == n_keys
+    assert name_key in list(embedding_dict_test.keys())
+    embedding_dict_test_value = embedding_dict_test[name_key]
+    assert isinstance(embedding_dict_test_value["image_embedding"], np.ndarray)
+    assert isinstance(embedding_dict_test_value["original_size"], tuple)
+    assert isinstance(embedding_dict_test_value["transform_matrix"], np.ndarray)
+    assert embedding_dict_test_value["transform_matrix"].shape == shape_transform_matrix
+    assert embedding_dict_test_value["image_embedding"].shape == shape_image_embedding
 
 class TestSegmentAnythingONNX(unittest.TestCase):
     def test_encode_predict_masks_ok(self):
@@ -123,3 +139,35 @@ def test_get_raster_inference(segment_anything_onnx_mocked):
             )
             assert np.array_equal(output_mask, mask)
             assert len_inference_out == input_output["output"]["n_predictions"]
+
+
+def test_get_raster_inference_with_embedding_from_dict_empty_dict_not_mocked():
+    name_fn = "samexporter_predict"
+
+    with open(TEST_EVENTS_FOLDER / f"{name_fn}.json") as tst_json:
+        inputs_outputs = json.load(tst_json)
+
+        n_keys = 1
+        embedding_dict_test = {}
+
+        for k, input_output in inputs_outputs.items():
+            img = np.load(TEST_EVENTS_FOLDER / f"{name_fn}" / k / "img.npy")
+            mask = np.load(TEST_EVENTS_FOLDER / f"{name_fn}" / k / "mask.npy")
+            local_prompt = input_output["input"]["prompt"]
+            model_name = input_output["input"]["model_name"]
+            assert len(embedding_dict_test) == n_keys-1
+
+            output_mask, len_inference_out = get_raster_inference_with_embedding_from_dict(
+                img=img,
+                prompt=local_prompt,
+                models_instance=instance_sam_onnx,
+                model_name=model_name,
+                embedding_key=f"embedding_key_test{n_keys}",
+                embedding_dict=embedding_dict_test
+            )
+            assert np.array_equal(output_mask, mask)
+            assert len_inference_out == input_output["output"]["n_predictions"]
+            assert_helper_get_raster_inference_with_embedding_from_dict(
+                embedding_dict_test, n_keys, f"embedding_key_test{n_keys}"
+            )
+            n_keys += 1
