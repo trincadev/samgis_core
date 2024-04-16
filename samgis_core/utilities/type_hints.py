@@ -1,22 +1,47 @@
 """custom type hints"""
 from enum import Enum
-from typing import TypedDict
+from typing import TypedDict, NewType
 
 from PIL.Image import Image
 from numpy import ndarray
 
 
-dict_str_int = dict[str, int]
-dict_str = dict[str]
-dict_str_any = dict[str, any]
-list_dict = list[dict]
-list_float = list[float]
-list_int = list[int]
-tuple_int = tuple[int]
-tuple_ndarr_int = tuple[ndarray, int]
-llist_float = list[list_float]
-tuple_float = tuple[float]
-tuple_float_any = tuple[float, any]
+class DictStrInt(dict[str, int]): pass
+
+
+class DictStr(dict[str]): pass
+
+
+class DictStrAny(dict[str, any]): pass
+
+
+class ListDict(list[dict]): pass
+
+
+class ListFloat(list[float]): pass
+
+
+class ListInt(list[int]): pass
+
+
+class TupleInt(tuple[int]): pass
+
+
+class TupleNdarrayInt(tuple[ndarray, int]): pass
+
+
+class TupleNdarrayFloat(tuple[ndarray, float]): pass
+
+
+class LlistFloat(ListFloat): pass
+
+
+class TupleFloat(tuple[float]): pass
+
+
+class TupleFloatAny(tuple[float, any]): pass
+
+
 PIL_Image = Image
 
 
@@ -26,7 +51,7 @@ class StrEnum(str, Enum):
 
 class EmbeddingImage(TypedDict):
     image_embedding: ndarray
-    original_size: tuple_int
+    original_size: TupleInt
     transform_matrix: ndarray
 
 

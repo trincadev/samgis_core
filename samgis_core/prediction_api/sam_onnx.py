@@ -32,7 +32,7 @@ from onnxruntime import get_available_providers, InferenceSession
 
 from samgis_core import app_logger, MODEL_FOLDER
 from samgis_core.utilities.constants import DEFAULT_INPUT_SHAPE, MODEL_ENCODER_NAME, MODEL_DECODER_NAME
-from samgis_core.utilities.type_hints import PIL_Image, list_dict, tuple_ndarr_int, EmbeddingDict, EmbeddingImage
+from samgis_core.utilities.type_hints import PIL_Image, ListDict, TupleNdarrayInt, EmbeddingDict, EmbeddingImage
 
 
 class SegmentAnythingONNX:
@@ -257,8 +257,8 @@ class SegmentAnythingONNX:
 
 
 def get_raster_inference(
-        img: PIL_Image or ndarray, prompt: list_dict, models_instance: SegmentAnythingONNX, model_name: str
-) -> tuple_ndarr_int:
+        img: PIL_Image or ndarray, prompt: ListDict, models_instance: SegmentAnythingONNX, model_name: str
+) -> TupleNdarrayInt:
     """
     Get inference output for a given image using a SegmentAnythingONNX model
 
@@ -318,7 +318,7 @@ def get_inference_embedding(
 
 
 def get_raster_inference_using_existing_embedding(
-        embedding: dict, prompt: list_dict, models_instance: SegmentAnythingONNX) -> tuple_ndarr_int:
+        embedding: dict, prompt: ListDict, models_instance: SegmentAnythingONNX) -> TupleNdarrayInt:
     """
     Get inference output for a given image using a SegmentAnythingONNX model, using an existing embedding instead of a
     new ndarray or PIL image
@@ -345,8 +345,8 @@ def get_raster_inference_using_existing_embedding(
 
 
 def get_raster_inference_with_embedding_from_dict(
-        img: PIL_Image or ndarray, prompt: list_dict, models_instance: SegmentAnythingONNX, model_name: str,
-        embedding_key: str, embedding_dict: dict) -> tuple_ndarr_int:
+        img: PIL_Image or ndarray, prompt: ListDict, models_instance: SegmentAnythingONNX, model_name: str,
+        embedding_key: str, embedding_dict: dict) -> TupleNdarrayInt:
     """
     Get inference output using a SegmentAnythingONNX model, but get the image embedding from the given embedding dict
      instead of creating a new embedding. This function needs the img argument to update the embedding dict if necessary
