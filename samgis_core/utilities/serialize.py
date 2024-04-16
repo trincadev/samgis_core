@@ -2,7 +2,6 @@
 from typing import Mapping
 
 from samgis_core import app_logger
-from samgis_core.utilities.type_hints import dict_str, dict_str_any
 
 
 def serialize(obj: any, include_none: bool = False):
@@ -74,11 +73,11 @@ def _serialize_list(ls: list, include_none: bool) -> list:
     return [_serialize(elem, include_none) for elem in ls]
 
 
-def _serialize_bytes(b: bytes) -> dict_str:
+def _serialize_bytes(b: bytes) -> dict[str, str]:
     import base64
     encoded = base64.b64encode(b)
     return {"value": encoded.decode('ascii'), "type": "bytes"}
 
 
-def _serialize_exception(e: Exception) -> dict_str_any:
+def _serialize_exception(e: Exception) -> dict[str, str]:
     return {"msg": str(e), "type": str(type(e)), **e.__dict__}
