@@ -10,7 +10,7 @@ readme = "README.md"
 name = "samgis_core"
 version = "1.2.0"
 
-[project.urls]
+[tool.poetry.urls]
 Source = "https://gitlab.com/aletrn/samgis_core"
 
 [tool.poetry.dependencies]
