@@ -1,8 +1,11 @@
 """Various utilities (logger, time benchmark, args dump, numerical and stats info)"""
-import numbers
+from copy import deepcopy
+
+from numpy import ndarray, float32
 
 from samgis_core import app_logger
 from samgis_core.utilities.serialize import serialize
+from samgis_core.utilities.type_hints import EmbeddingPILImage, PIL_Image
 
 
 def _prepare_base64_input(sb):
@@ -14,7 +17,7 @@ def _prepare_base64_input(sb):
     raise ValueError("Argument must be string or bytes")
 
 
-def _is_base64(sb: str or bytes):
+def _is_base64(sb: str | bytes):
     import base64
 
     try:
@@ -43,7 +46,7 @@ def base64_decode(s):
     return s
 
 
-def base64_encode(sb: str or bytes) -> bytes:
+def base64_encode(sb: str | bytes) -> bytes:
     """
     Encode input strings or bytes as base64
 
@@ -59,7 +62,7 @@ def base64_encode(sb: str or bytes) -> bytes:
     return base64.b64encode(sb_bytes)
 
 
-def hash_calculate(arr) -> str or bytes:
+def hash_calculate(arr) -> str | bytes:
     """
     Return computed hash from input variable (typically a numpy array).
 
@@ -92,3 +95,26 @@ def hash_calculate(arr) -> str or bytes:
     else:
         raise ValueError(f"variable 'arr':{arr} of type '{type(arr)}' not yet handled.")
     return b64encode(hash_fn.digest())
+
+
+def convert_ndarray_to_pil(pil_image: PIL_Image | ndarray):
+    from PIL import Image
+
+    if isinstance(pil_image, ndarray):
+        pil_image = Image.fromarray(pil_image)
+    return pil_image
+
+
+def apply_coords(coords: ndarray, embedding: EmbeddingPILImage):
+    """
+    Expects a numpy np_array of length 2 in the final dimension. Requires the
+    original image size in (H, W) format.
+    """
+    orig_width, orig_height = embedding["original_size"]
+    resized_width, resized_height = embedding["resized_size"]
+    coords = deepcopy(coords).astype(float)
+
+    coords[..., 0] = coords[..., 0] * (resized_width / orig_width)
+    coords[..., 1] = coords[..., 1] * (resized_height / orig_height)
+
+    return coords.astype(float32)
