@@ -27,6 +27,9 @@ class ListInt(list[int]): pass
 class TupleInt(tuple[int]): pass
 
 
+TupleInt2 = NewType("TupleInt", tuple[int, int])
+
+
 class TupleNdarrayInt(tuple[ndarray, int]): pass
 
 
@@ -55,4 +58,11 @@ class EmbeddingImage(TypedDict):
     transform_matrix: ndarray
 
 
+class EmbeddingPILImage(TypedDict):
+    image_embedding: ndarray
+    original_size: TupleInt2
+    resized_size: TupleInt2
+
+
 EmbeddingDict = dict[str, EmbeddingImage]
+EmbeddingPILDict = dict[str, EmbeddingPILImage]

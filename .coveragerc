@@ -1,6 +1,6 @@
 [run]
-source = samgis
-omit = ./venv/*,__version__.py,*tests*,*apps.py,*manage.py,*__init__.py,*migrations*,*asgi*,*wsgi*,*admin.py,*urls.py,./tests/*
+source = samgis_core
+omit = ./venv/*,__version__.py,*tests*,*apps.py,*manage.py,*__init__.py,*migrations*,*asgi*,*wsgi*,*admin.py,*urls.py,./tests/*,plot_images.py
 
 [report]
 omit = ./venv/*,*tests*,*apps.py,*manage.py,*__init__.py,*migrations*,*asgi*,*wsgi*,*admin.py,*urls.py,./tests/*
