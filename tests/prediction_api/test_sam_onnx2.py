@@ -1,4 +1,3 @@
-import logging
 import unittest
 
 import numpy as np
@@ -8,7 +7,8 @@ from samgis_core import MODEL_FOLDER
 from samgis_core.prediction_api.sam_onnx2 import SegmentAnythingONNX2
 from samgis_core.utilities.constants import MODEL_ENCODER_NAME, MODEL_DECODER_NAME
 from samgis_core.utilities.utilities import hash_calculate
-from tests import TEST_EVENTS_FOLDER
+from tests import TEST_EVENTS_FOLDER, test_logger
+from tests.prediction_api import helper_assertions
 
 
 instance_sam_onnx = SegmentAnythingONNX2(
@@ -22,6 +22,7 @@ prompt = [{
     "label": 0
 }]
 img_pil = Image.open(TEST_EVENTS_FOLDER / "samexporter_predict" / "teglio" / "teglio_1280x960.jpg")
+mask_pil = Image.open(TEST_EVENTS_FOLDER / "samexporter_predict" / "teglio" / "teglio_1280x960_mask.png")
 img_pil = img_pil.convert("RGB")
 image_embedding = instance_sam_onnx.encode(img_pil)
 
@@ -57,13 +58,17 @@ class TestSegmentAnythingONNX2(unittest.TestCase):
 
     def test_encode_predict_masks_ok(self):
         img_embedding = image_embedding["image_embedding"]
-        logging.info(f"embedding type: {type(image_embedding)}.")
+        test_logger.info(f"embedding type: {type(image_embedding)}.")
         assert hash_calculate(img_embedding) == b'14pi7a6FGQgFN4Zne9uRXAg1vCt6QA/pqQrrLQ66weo='
-        inference_masks = instance_sam_onnx.predict_masks(image_embedding, prompt)
-        # VISUALIZE MASK
-        img_mask = inference_masks[0][0] > 0
-        assert hash_calculate(np.array(img_mask)) == b'YnShOWAYn10yX18voFNhkGCRG86NP9k5h4YQfJbQ4fM='
-        logging.info(f'output::{img_mask.shape}, {img_pil.size}, {image_embedding["original_size"]}.')
+        output_inference = instance_sam_onnx.predict_masks(image_embedding, prompt)
+
+        # here there is at least one output mask, created from the inference output
+        output_mask_np = (output_inference[0][0] > 0).astype(np.uint8) * 255
+        output_mask = Image.fromarray(output_mask_np)
+        expected_mask = np.array(mask_pil)
+        assert hash_calculate(expected_mask) == b'NDp9r4fI99jqt3aQnkeez8b0/w24tdGIWXKVz6qRWUU='
+        allclose_perc = 0.002
+        helper_assertions.assert_sum_difference_less_than(output_mask_np, expected_mask, rtol=allclose_perc)
 
     def test_encode_predict_masks_ex1(self):
         with self.assertRaises(Exception):
@@ -71,7 +76,7 @@ class TestSegmentAnythingONNX2(unittest.TestCase):
                 np_input = np.zeros((10, 10))
                 instance_sam_onnx.encode(np_input)
             except Exception as e:
-                logging.error(f"e:{e}.")
+                test_logger.error(f"e:{e}.")
                 msg = "[ONNXRuntimeError] : 2 : INVALID_ARGUMENT : Invalid rank for input: input_image "
                 msg += "Got: 2 Expected: 3 Please fix either the inputs or the model."
                 assert str(e) == msg
@@ -86,12 +91,12 @@ class TestSegmentAnythingONNX2(unittest.TestCase):
         embedding = instance_sam_onnx.encode(np_img)
         d = {"a": 1}
         for x in d:
-            print(x)
+            test_logger.info(x)
 
         with self.assertRaises(IndexError):
             try:
                 instance_sam_onnx.predict_masks(embedding, wrong_prompt)
             except IndexError as ie:
-                print(ie)
+                test_logger.error(ie)
                 assert str(ie) == "list index out of range"
                 raise ie
