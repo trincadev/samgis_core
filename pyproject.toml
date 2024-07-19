@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "samgis_core"
-version = "2.0.2"
+version = "2.1.0"
 description = "SamGIS CORE"
 authors = ["alessandro trinca tornidor <alessandro@trinca.tornidor.com>"]
 license = "MIT license"
@@ -8,22 +8,25 @@ readme = "README.md"
 
 [metadata]
 name = "samgis_core"
-version = "2.0.2"
+version = "2.1.0"
 
 [tool.poetry.urls]
 Source = "https://gitlab.com/aletrn/samgis_core"
 
 [tool.poetry.dependencies]
+bson = "^0.5.10"
+loguru = "^0.7.2"
 numpy = [
     {version = "1.25.2", python = "~3.10"},
     {version = "^1.26", python = "~3.11"}
 ]
 pillow = "^10.4.0"
 python = ">=3.10, <3.12"
+python-dotenv = "^1.0.1"
 onnxruntime = "^1.18.1"
-loguru = "^0.7.2"
-bson = "^0.5.10"
+structlog = "^24.4.0"
 
+mpld3 = "^0.5.10"
 [tool.poetry.group.test]
 optional = true
 

@@ -40,7 +40,8 @@ class TestSamOnnx2Inference(unittest.TestCase):
             embedding_key=name_key,
             embedding_dict=embedding_dict_test
         )
-        expected_mask = PIL.Image.open(TEST_EVENTS_FOLDER / "samexporter_predict" / "teglio" / "teglio_1280x960_mask2.png")
+        expected_mask = PIL.Image.open(
+            TEST_EVENTS_FOLDER / "samexporter_predict" / "teglio" / "teglio_1280x960_mask_inference.png")
         expected_mask = np.array(expected_mask)
         allclose_perc = 0.05  # percentage
         helper_assertions.assert_sum_difference_less_than(output_mask, expected_mask, rtol=allclose_perc)

@@ -62,7 +62,7 @@ class SegmentAnythingONNX2:
             encoder_model_path, providers=providers
         )
         self.encoder_input_name = self.encoder_session.get_inputs()[0].name
-        app_logger.info("encoder_input_name:", self.encoder_input_name)
+        app_logger.info(f"encoder_input_name:{self.encoder_input_name}.")
         self.decoder_session = InferenceSession(
             decoder_model_path, providers=providers
         )
