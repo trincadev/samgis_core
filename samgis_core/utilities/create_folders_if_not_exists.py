@@ -31,25 +31,27 @@ def create_folder_if_not_exists(pathname: Path | str):
     assert current_pathname.is_dir()
 
 
-def folders_creation(folders_map: dict | str = None):
-    if folders_map is None:
+def folders_creation(folders_map: dict | str = None, ignore_errors: bool = True):
+    enforce_validation_with_getenv = folders_map is None
+    if enforce_validation_with_getenv:
         folders_map = os.getenv("FOLDERS_MAP")
     try:
         folders_dict = folders_map if isinstance(folders_map, dict) else json.loads(folders_map)
         for folder_env_ref, folder_env_path in folders_dict.items():
-            print(f"folder_env_ref:{folder_env_ref}, folder_env_path:{folder_env_path}.")
             logging.info(f"folder_env_ref:{folder_env_ref}, folder_env_path:{folder_env_path}.")
             create_folder_if_not_exists(folder_env_path)
             print("========")
-            assert os.getenv(folder_env_ref) == folder_env_path
+            if enforce_validation_with_getenv:
+                assert os.getenv(folder_env_ref) == folder_env_path
     except (json.JSONDecodeError, TypeError) as jde:
-        print(f"jde:{jde}.")
         logging.error(f"jde:{jde}.")
-        print("double check your variables, e.g. for misspelling like 'FOLDER_MAP'...")
-        logging.info("double check your variables, e.g. for misspelling like 'FOLDER_MAP' instead than 'FOLDERS_MAP'...")
+        msg = "double check your variables, e.g. for misspelling like 'FOLDER_MAP'"
+        msg += "instead than 'FOLDERS_MAP', or invalid json values."
+        logging.error(msg)
         for k_env, v_env in dict(os.environ).items():
-            print(f"{k_env}, v_env:{v_env}.")
             logging.info(f"{k_env}, v_env:{v_env}.")
+        if not ignore_errors:
+            raise TypeError(jde)
 
 
 if __name__ == '__main__':
