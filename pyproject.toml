@@ -23,8 +23,12 @@ numpy = [
 pillow = "^10.4.0"
 python = ">=3.10, <3.12"
 python-dotenv = "^1.0.1"
-onnxruntime = "^1.18.1"
 structlog = "^24.4.0"
+[tool.poetry.group.onnxruntime]
+optional = true
+
+[tool.poetry.group.onnxruntime.dependencies]
+onnxruntime = "^1.18.1"
 
 mpld3 = "^0.5.10"
 [tool.poetry.group.test]
