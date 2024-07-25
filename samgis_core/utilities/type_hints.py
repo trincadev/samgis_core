@@ -6,6 +6,9 @@ from PIL.Image import Image
 from numpy import ndarray
 
 
+class ListStr(list[str]): pass
+
+
 class DictStrInt(dict[str, int]): pass
 
 
