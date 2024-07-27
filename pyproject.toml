@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "samgis_core"
-version = "3.0.3"
+version = "3.0.4"
 description = "SamGIS CORE"
 authors = ["alessandro trinca tornidor <alessandro@trinca.tornidor.com>"]
 license = "MIT license"
@@ -8,7 +8,7 @@ readme = "README.md"
 
 [metadata]
 name = "samgis_core"
-version = "3.0.3"
+version = "3.0.4"
 
 [tool.poetry.urls]
 Source = "https://gitlab.com/aletrn/samgis_core"
