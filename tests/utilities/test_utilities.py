@@ -59,3 +59,15 @@ class TestUtilities(unittest.TestCase):
             except ValueError as ve:
                 self.assertEqual(str(ve), "Argument must be string or bytes")
                 raise ve
+
+    def test_normalize_array(self):
+        from samgis_core.utilities.utilities import normalize_array, hash_calculate
+
+        arr = np.arange(-50, 50).reshape(10, 10)
+        arr[4:7, 2:8] = 89
+        normalized = normalize_array(arr)
+        assert hash_calculate(normalized) == b'UdCAAQI/QcfLG8Hzgivf7FPSegNwQSXEaXX5d0Lg1Z0='
+        normalized = normalize_array(arr, new_h=1)
+        assert hash_calculate(normalized) == b'CZsH43+hgXZjXTqhzW7Rv4Qd93eHfd7QU7BnObmZUsc='
+        normalized = normalize_array(arr, new_h=128., type_normalization="float")
+        assert hash_calculate(normalized) == b'+HYPe8utlYKRqrizYPdZUINuIPqv0cIWI1zKa4tscno='
