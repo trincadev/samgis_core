@@ -35,10 +35,13 @@ class TestPlotImages(unittest.TestCase):
             'qt5cairo', 'tkagg', 'tkcairo', 'webagg', 'wx', 'wxagg', 'wxcairo', 'agg', 'cairo', 'pdf', 'pgf', 'ps',
             'svg', 'template'
         ]
+        See also MatplotlibBackend type_hint
         """
         img = Image.open(folder / "colico_nextzen_rgb.png")
         img_np = np.array(img)
-        fig, ax = plot_images.imshow_raster(img_np, "colico", show=True, close_after=0.01)  # , debug=True)
+        fig, ax = plot_images.imshow_raster(img_np, "colico", show=True, close_after=0.01)
+        # Use imshow_raster with debug=True to actually see the image plot interactively
+        # fig, ax = plot_images.imshow_raster(img_np, "colico", show=True, debug=True)
         with tempfile.NamedTemporaryFile(prefix="tmp_img_", suffix=".png") as tmp_file:
             fig.savefig(tmp_file.name)
             saved_img = Image.open(tmp_file.name)

@@ -1,4 +1,5 @@
 import json
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -58,6 +59,7 @@ class TestSamOnnx2Inference(unittest.TestCase):
         assert embedding_dict_test_value["resized_size"] == (1024, 768)
 
     def test_get_raster_inference_with_embedding_from_dict_empty_dict_not_mocked(self):
+        from pathlib import Path
         name_fn = "samexporter_predict"
 
         with open(TEST_EVENTS_FOLDER / f"{name_fn}.json") as tst_json:
@@ -74,14 +76,21 @@ class TestSamOnnx2Inference(unittest.TestCase):
                 model_name = input_output["input"]["model_name"]
                 test_logger.info(f"img.shape: {img.shape}.")
 
-                output_mask, len_inference_out = sam_onnx_inference.get_raster_inference_with_embedding_from_dict(
-                    img=img,
-                    prompt=local_prompt,
-                    models_instance=instance_sam_onnx,
-                    model_name=model_name,
-                    embedding_key=f"embedding_key_test{n_keys}",
-                    embedding_dict=embedding_dict_test
-                )
+                with tempfile.TemporaryDirectory(suffix="test_inference_mask__") as tmp_dir:
+                    output_mask, len_inference_out = sam_onnx_inference.get_raster_inference_with_embedding_from_dict(
+                        img=img,
+                        prompt=local_prompt,
+                        models_instance=instance_sam_onnx,
+                        model_name=model_name,
+                        embedding_key=f"embedding_key_test{n_keys}",
+                        embedding_dict=embedding_dict_test,
+                        folder_write_tmp_on_disk=tmp_dir
+                    )
+                    files = [item.name for item in Path(tmp_dir).glob("*")]
+                    for file in files:
+                        assert "mask_embedding_key_test" in file
+                        assert "_n" in file
+                        assert ".png" in file
                 helper_assertions.assert_sum_difference_less_than(output_mask, mask, rtol=allclose_perc)
                 assert len_inference_out == input_output["output"]["n_predictions"]
                 helper_assertions.assert_helper_get_raster_inference_with_embedding_from_dict(
