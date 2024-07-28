@@ -10,6 +10,14 @@ def stats_pathname(pathname: Path | str):
 
 
 def create_folder_if_not_exists(pathname: Path | str):
+    """Create a folder given its path.
+
+    Args:
+        pathname: folder Path or string
+
+    Returns:
+
+    """
     current_pathname = Path(pathname)
     try:
         print(f"Pathname exists? {current_pathname.exists()}, That's a folder? {current_pathname.is_dir()}...")
@@ -32,6 +40,18 @@ def create_folder_if_not_exists(pathname: Path | str):
 
 
 def folders_creation(folders_map: dict | str = None, ignore_errors: bool = True):
+    """Create all folders listed within the folders_map argument (this argument can be a dict or a json string).
+    If folders_map is None the function will try to load the 'FOLDERS_MAP' env variable, then will load that json into
+    dict. Once loaded and parsed the folders_map variable, the function will loop over the dict to create the folders
+    using the `create_folder_if_not_exists()` function.
+
+    Args:
+        folders_map: dict or string map of folder string
+        ignore_errors: bool needed to eventually ignore errors on folder creation
+
+    Returns:
+
+    """
     enforce_validation_with_getenv = folders_map is None
     if enforce_validation_with_getenv:
         folders_map = os.getenv("FOLDERS_MAP")

@@ -98,6 +98,16 @@ def hash_calculate(arr) -> str | bytes:
 
 
 def convert_ndarray_to_pil(pil_image: PIL_Image | ndarray):
+    """
+    Check if an image is a ndarray and then convert to a PIL Image instance.
+
+    Args:
+        pil_image: PIL image or ndarray
+
+    Returns:
+        PIL Image
+
+    """
     from PIL import Image
 
     if isinstance(pil_image, ndarray):
@@ -109,6 +119,14 @@ def apply_coords(coords: ndarray, embedding: EmbeddingPILImage):
     """
     Expects a numpy np_array of length 2 in the final dimension. Requires the
     original image size in (H, W) format.
+
+        Args:
+            coords: coordinates ndarray
+            embedding: PIL image embedding dict
+
+        Returns:
+            coordinates ndarray
+
     """
     orig_width, orig_height = embedding["original_size"]
     resized_width, resized_height = embedding["resized_size"]

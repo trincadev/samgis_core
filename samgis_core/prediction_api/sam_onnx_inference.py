@@ -20,6 +20,7 @@ def get_raster_inference(
 
     Returns:
         raster prediction mask, prediction number
+
     """
     np_img = np_array(img)
     app_logger.info(f"img type {type(np_img)}, prompt:{prompt}.")
@@ -49,6 +50,7 @@ def get_inference_embedding(
 
     Returns:
         raster dict
+
     """
     if embedding_key in embedding_dict:
         app_logger.info("found embedding in dict...")
@@ -80,6 +82,7 @@ def get_raster_inference_using_existing_embedding(
 
     Returns:
         raster prediction mask, prediction number
+
     """
     app_logger.info(f"using existing embedding of type {type(embedding)}.")
     inference_out = models_instance.predict_masks(embedding, prompt)
@@ -111,6 +114,7 @@ def get_raster_inference_with_embedding_from_dict(
 
     Returns:
         raster prediction mask, prediction number
+
     """
     app_logger.info(f"handling embedding using key {embedding_key}.")
     embedding_dict = get_inference_embedding(img, models_instance, model_name, embedding_key, embedding_dict)

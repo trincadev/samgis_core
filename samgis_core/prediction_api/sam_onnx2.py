@@ -37,7 +37,7 @@ from samgis_core.utilities.utilities import convert_ndarray_to_pil, apply_coords
 
 class SegmentAnythingONNX2:
     """
-    Segmentation model using SegmentAnything.
+    Segmentation model using Segment Anything.
     Compatible with onnxruntime 1.17.x and later
     """
 
@@ -68,8 +68,17 @@ class SegmentAnythingONNX2:
         )
 
     @staticmethod
-    def get_input_points(prompt: ListDict):
-        """Get input points"""
+    def get_input_points(prompt: ListDict) -> tuple[ndarray]:
+        """
+        Get input points from a prompt dict list.
+
+        Args:
+            prompt: dict list
+
+        Returns:
+            tuple of points, labels ndarray ready for Segment Anything inference
+
+        """
         points = []
         labels = []
         for mark in prompt:
@@ -95,11 +104,12 @@ class SegmentAnythingONNX2:
 
         Returns:
             embedding image dict useful to store and cache image embeddings
+
         """
         resized_image = self.preprocess_image(img)
         padded_input_tensor = self.padding_tensor(resized_image)
 
-        # 2. GET IMAGE EMBEDDINGS USING IMAGE ENCODER
+        # 2. GET IMAGE EMBEDDINGS USING IMAGE ENCODER (`size` argument here is like ndarray `shape`)
         outputs = self.encoder_session.run(None, {"images": padded_input_tensor})
         image_embedding = outputs[0]
         img = convert_ndarray_to_pil(img)
@@ -109,9 +119,17 @@ class SegmentAnythingONNX2:
             "resized_size": resized_image.size
         }
 
-    def predict_masks(self, embedding: EmbeddingPILImage, prompt: ListDict):
+    def predict_masks(self, embedding: EmbeddingPILImage, prompt: ListDict) -> ndarray:
         """
         Predict masks for a single image.
+
+        Args:
+            embedding: input image embedding dict
+            prompt: Segment Anything input prompt
+
+        Returns:
+            prediction masks ndarray; this should have (1, 1, **image.shape) shape
+
         """
         input_points, input_labels = self.get_input_points(prompt)
 
@@ -136,8 +154,17 @@ class SegmentAnythingONNX2:
         })
         return output_masks
 
-    def preprocess_image(self, img: PIL_Image | ndarray):
-        """Resize image preserving aspect ratio using 'output_size_target' as a long side"""
+    def preprocess_image(self, img: PIL_Image | ndarray) -> ndarray:
+        """
+        Resize image preserving aspect ratio using `output_size_target` as a long side.
+
+        Args:
+            img: input ndarray/PIL image
+
+        Returns:
+            image ndarray
+
+        """
         from PIL import Image
 
         app_logger.info(f"image type:{type(img)}, shape/size:{img.size}.")
@@ -157,7 +184,17 @@ class SegmentAnythingONNX2:
         img = img.resize((resized_width, resized_height), Image.Resampling.BILINEAR)
         return img
 
-    def padding_tensor(self, img: PIL_Image | ndarray):
+    def padding_tensor(self, img: PIL_Image | ndarray) -> ndarray:
+        """
+        Pad an image ndarray/tensor to given instance self.target_size
+
+        Args:
+            img: input ndarray/PIL image
+
+        Returns:
+            image ndarray
+
+        """
         # Prepare input tensor from image
         tensor_input = np_array(img)
         resized_width, resized_height = img.size
