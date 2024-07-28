@@ -1,10 +1,13 @@
+import structlog.stdlib
 from numpy import ndarray
 from matplotlib import pyplot as plt
 
-from samgis_core.utilities.type_hints import ListStr, TupleInt
-
+from samgis_core.utilities.type_hints import ListStr, MatplotlibBackend
 
 FigAxes = tuple[plt.Figure, plt.Axes]
+
+
+logger = structlog.stdlib.get_logger(__file__)
 
 
 def helper_imshow_output_expected(
@@ -47,10 +50,9 @@ def helper_imshow_output_expected(
     return fig, ax
 
 
-
 def imshow_raster(
         raster, title, cmap: str = "gist_rainbow", interpolation: str = None, alpha=None, transform=None, plot_size=5,
-        show=False, debug: bool = False, close_after: float = 0.0) -> FigAxes:
+        show=False, debug: bool = False, close_after: float = 0.0, backend: MatplotlibBackend = None) -> FigAxes:
     """
     Displays raster images lists/arrays with titles, legend, alpha transparency, figure sizes
     and geographic transformations, if not none (leveraging rasterio.plot)
@@ -66,12 +68,18 @@ def imshow_raster(
         show: fire plt.show() action if needed
         debug: workaround useful in an interactive context, like Pycharm debugger
         close_after: close after give seconds (useful in tests, contrasted to 'debug' option)
+        backend: matplotlib backend string
 
     Returns:
         tuple of matplotlib Figure, Axes
 
     """
     from rasterio import plot
+
+    if not backend:
+        backend = plt.get_backend()
+        plt.rcParams["backend"] = backend
+    logger.info(f"use {backend} as matplotlib backend...")
 
     fig, ax = plt.subplots(figsize=(plot_size, plot_size))
     raster_ax = raster[0] if transform is not None else raster
