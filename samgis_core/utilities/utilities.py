@@ -1,6 +1,7 @@
 """Various utilities (logger, time benchmark, args dump, numerical and stats info)"""
 from copy import deepcopy
 
+import numpy as np
 from numpy import ndarray, float32
 
 from samgis_core import app_logger
@@ -136,3 +137,12 @@ def apply_coords(coords: ndarray, embedding: EmbeddingPILImage):
     coords[..., 1] = coords[..., 1] * (resized_height / orig_height)
 
     return coords.astype(float32)
+
+
+def normalize_array(arr: ndarray, new_h: int | float = 255., type_normalization: str = "int") -> ndarray:
+    arr = arr.astype(float)
+    arr_max = np.nanmax(arr)
+    arr_min = np.nanmin(arr)
+    scaled_arr = (arr - arr_min) / (arr_max - arr_min)
+    multiplied_arr = scaled_arr * new_h
+    return multiplied_arr.astype(int) if type_normalization == "int" else multiplied_arr
