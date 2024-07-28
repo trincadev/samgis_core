@@ -70,7 +70,8 @@ def get_inference_embedding(
 
 
 def get_raster_inference_using_existing_embedding(
-        embedding: dict, prompt: ListDict, models_instance: SegmentAnythingONNX2) -> TupleNdarrayInt:
+        embedding: dict, prompt: ListDict, models_instance: SegmentAnythingONNX2, folder_write_tmp_on_disk: str = None,
+        key: str = None) -> TupleNdarrayInt:
     """
     Get inference output for a given image using a SegmentAnythingONNX model, using an existing embedding instead of a
     new ndarray or PIL image
@@ -79,6 +80,8 @@ def get_raster_inference_using_existing_embedding(
         embedding: dict
         prompt: list of prompt dict
         models_instance: SegmentAnythingONNX instance model
+        folder_write_tmp_on_disk: output folder where to write debug images
+        key: embedding key
 
     Returns:
         raster prediction mask, prediction number
@@ -90,16 +93,27 @@ def get_raster_inference_using_existing_embedding(
     app_logger.info(f"Created {len_inference_out} prediction_masks,"
                     f"shape:{inference_out.shape}, dtype:{inference_out.dtype}.")
     mask = zeros((inference_out.shape[2], inference_out.shape[3]), dtype=uint8)
+    write_tmp_img = bool(folder_write_tmp_on_disk)
     for n, m in enumerate(inference_out[0, :, :, :]):
         app_logger.debug(f"{n}th of prediction_masks shape {inference_out.shape}"
                          f" => mask shape:{mask.shape}, {mask.dtype}.")
         mask[m > 0.0] = 255
+        if write_tmp_img:
+            from pathlib import Path
+            from datetime import datetime
+            from samgis_core.utilities.utilities import convert_ndarray_to_pil, normalize_array
+            m_normalized = normalize_array(m, type_normalization="float")
+            m_out = convert_ndarray_to_pil(m_normalized)
+            now = datetime.now().isoformat()
+            if len(m.shape) == 2:
+                m_out = m_out.convert("L")
+            m_out.save(Path(folder_write_tmp_on_disk) / f"mask_{key}_{now}_n{n}.png")
     return mask, len_inference_out
 
 
 def get_raster_inference_with_embedding_from_dict(
         img: PIL_Image | ndarray, prompt: ListDict, models_instance: SegmentAnythingONNX2, model_name: str,
-        embedding_key: str, embedding_dict: dict) -> TupleNdarrayInt:
+        embedding_key: str, embedding_dict: dict, folder_write_tmp_on_disk: str = None) -> TupleNdarrayInt:
     """
     Get inference output using a SegmentAnythingONNX model, but get the image embedding from the given embedding dict
      instead of creating a new embedding. This function needs the img argument to update the embedding dict if necessary
@@ -111,6 +125,7 @@ def get_raster_inference_with_embedding_from_dict(
         model_name: model name string
         embedding_key: embedding id
         embedding_dict: embedding images dict
+        folder_write_tmp_on_disk: output folder where to write debug images
 
     Returns:
         raster prediction mask, prediction number
@@ -122,4 +137,5 @@ def get_raster_inference_with_embedding_from_dict(
     embedding = embedding_dict[embedding_key]
     n_keys = len(embedding_dict)
     app_logger.info(f"embedding created ({n_keys} keys in embedding dict), running predict_masks with prompt {prompt}.")
-    return get_raster_inference_using_existing_embedding(embedding, prompt, models_instance)
+    return get_raster_inference_using_existing_embedding(
+        embedding, prompt, models_instance, folder_write_tmp_on_disk=folder_write_tmp_on_disk, key=embedding_key)

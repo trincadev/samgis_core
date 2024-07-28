@@ -67,5 +67,32 @@ class EmbeddingPILImage(TypedDict):
     resized_size: TupleInt2
 
 
+class MatplotlibBackend(StrEnum):
+    gtk3agg = "gtk3agg"
+    gtk3cairo = "gtk3cairo"
+    gtk4agg = "gtk4agg"
+    gtk4cairo = "gtk4cairo"
+    macosx = "macosx"
+    nbagg = "nbagg"
+    notebook = "notebook"
+    qtagg = "qtagg"
+    qtcairo = "qtcairo"
+    qt5agg = "qt5agg"
+    qt5cairo = "qt5cairo"
+    tkagg = "tkagg"
+    tkcairo = "tkcairo"
+    webagg = "webagg"
+    wx = "wx"
+    wxagg = "wxagg"
+    wxcairo = "wxcairo"
+    agg = "agg"
+    cairo = "cairo"
+    pdf = "pdf"
+    pgf = "pgf"
+    ps = "ps"
+    svg = "svg"
+    template = "template"
+
+
 EmbeddingDict = dict[str, EmbeddingImage]
 EmbeddingPILDict = dict[str, EmbeddingPILImage]
