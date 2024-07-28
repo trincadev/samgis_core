@@ -27,6 +27,20 @@ def drop_color_message_key(_, __, event_dict: EventDict) -> EventDict:
 
 
 def setup_logging(json_logs: bool = False, log_level: str = "INFO"):
+    """Enhance the configuration of structlog.
+    Needed for correlation id injection with fastapi middleware in samgis-web.
+    After the use of logging_middleware() in samgis_web.web.middlewares, add also the CorrelationIdMiddleware from
+    'asgi_correlation_id' package. (See 'tests/web/test_middlewares.py' in samgis_web).
+    To change an input parameter like the log level, re-run the function changing the parameter
+    (no need to re-instantiate the logger instance: it's a hot change)
+
+    Args:
+        json_logs: set logs in json format
+        log_level: log level string
+
+    Returns:
+
+    """
     timestamper = structlog.processors.TimeStamper(fmt="iso")
 
     shared_processors: list[Processor] = [
