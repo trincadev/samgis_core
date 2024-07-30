@@ -22,15 +22,22 @@ def assert_sum_difference_less_than(a: np.ndarray, b: np.ndarray, rtol=1e-05, **
     parameter. Right now don't evaluate absolute number of values
     """
     relative_count, absolute_count = count_sum_difference_less_than(a, b, **kwargs)
+    test_logger.info(f"array a, shape:{a.shape}.")
+    test_logger.info(f"array b, shape:{b.shape}.")
     try:
         print(f"absolute_value:{absolute_count}, relative_count:{relative_count}, rtol:{rtol}.")
         test_logger.info(f"absolute_value:{absolute_count}, relative_count:{relative_count}, rtol:{rtol}.")
         assert relative_count < rtol
     except AssertionError as ae:
-        test_logger.error(f"Mismatched elements: {absolute_count} / {a.size} ({relative_count:.02f})")
-        test_logger.error(f"Max absolute difference: {rtol*a.size}")
-        test_logger.error(f"Max relative difference: {rtol}")
-        helper_imshow_output_expected(a, b, "a", "b")
+        msg = f"""Mismatched elements: {absolute_count} / {a.size} ({relative_count:.02f}),
+        Max absolute difference: {rtol*a.size},
+        Max relative difference: {rtol}
+        """
+        test_logger.error(f"ae:{ae}.")
+        test_logger.error(msg)
+        # here it seems not working, include this function in a try/except and
+        # use helper_imshow_output_expected() before raising the exception
+        helper_imshow_output_expected([a, b], ["a", "b"], show=True)  # , debug=True)
         raise ae
 
 
