@@ -140,6 +140,18 @@ def apply_coords(coords: ndarray, embedding: EmbeddingPILImage):
 
 
 def normalize_array(arr: ndarray, new_h: int | float = 255., type_normalization: str = "int") -> ndarray:
+    """
+    Normalize numpy array between 0 and 'new_h' value. Default dtype of output array is int
+
+
+    Args:
+        arr: input numpy array
+        new_h: max value of output array
+        type_normalization: default dtype of output array
+
+    Returns:
+        numpy array
+    """
     arr = arr.astype(float)
     arr_max = np.nanmax(arr)
     arr_min = np.nanmin(arr)
