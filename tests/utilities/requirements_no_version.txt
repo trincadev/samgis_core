@@ -1,0 +1,7 @@
+bson
+numpy
+pillow
+python-dotenv
+python_dotenv
+structlog
+onnxruntime

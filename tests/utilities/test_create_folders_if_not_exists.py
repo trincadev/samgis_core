@@ -36,7 +36,7 @@ class TestCreateFoldersIfNotExists(unittest.TestCase):
                 create_folders_if_not_exists.create_folder_if_not_exists("/dev/null")
             except FileExistsError as fe_error:
                 msg = str(fe_error)
-                self.assertEquals(msg, "[Errno 17] File exists: '/dev/null'")
+                self.assertEqual(msg, "[Errno 17] File exists: '/dev/null'")
                 raise FileExistsError
 
     def test_folders_creation_map_as_argument(self):
@@ -65,5 +65,5 @@ class TestCreateFoldersIfNotExists(unittest.TestCase):
                 create_folders_if_not_exists.folders_creation(ignore_errors=False)
             except TypeError as json_type_error:
                 msg = str(json_type_error)
-                self.assertEquals(msg, 'Expecting value: line 1 column 1 (char 0)')
+                self.assertEqual(msg, 'Expecting value: line 1 column 1 (char 0)')
                 raise json_type_error
