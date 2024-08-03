@@ -123,7 +123,7 @@ def build_frontend(
     app_logger.info(f"current_folder:{current_folder}, install pnpm...")
     run_command(["which", "npm"])
     run_command(["npm", "install", "-g", "npm", "pnpm"])
-    app_logger.info(f"install pnpm dependencies...")
+    app_logger.info("install pnpm dependencies...")
     run_command(["pnpm", "install"])
 
     # build frontend dist and assert for its correct build
@@ -139,7 +139,7 @@ def build_frontend(
     run_command(["pnpm", "tailwindcss", "-i", str(input_css_path), "-o", output_css])
     app_logger.info(f"pnpm: ls -l {output_css}:")
     run_command(["ls", "-l", output_css])
-    app_logger.info(f"end!")
+    app_logger.info("end!")
     return True
 
 
