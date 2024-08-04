@@ -1,6 +1,13 @@
+import argparse
+import contextlib
+import io
+import os
+import pathlib
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 from unittest.mock import patch
 
 import structlog
@@ -34,15 +41,76 @@ structlog==24.4.0
 """
 
 
+@contextlib.contextmanager
+def captured_output():
+    new_out, new_err = io.StringIO(), io.StringIO()
+    old_out, old_err = sys.stdout, sys.stderr
+    try:
+        sys.stdout, sys.stderr = new_out, new_err
+        yield sys.stdout, sys.stderr
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err
+
+
 class UpdateRequirementsTxt(unittest.TestCase):
     @patch.object(update_requirements_txt, "get_dependencies_freeze")
-    def test_get_requirements_txt(self, get_dependencies_freeze_mocked):
+    @patch.object(update_requirements_txt, "sanitize_path")
+    def test_get_requirements_txt(self, sanitize_path_mocked, get_dependencies_freeze_mocked):
         get_dependencies_freeze_mocked.return_value = freeze_mocked
-        with tempfile.NamedTemporaryFile(prefix="requirements_", suffix=".txt") as dst:
-            requirements_no_version = Path(__file__).parent / "requirements_no_version.txt"
-            test_logger.info(f"requirements_no_version:{requirements_no_version}!")
-            test_logger.info(f"file exists:{requirements_no_version.is_file()}!")
-            update_requirements_txt.get_requirements_txt(requirements_no_version, dst.name)
-            with open(dst.name) as check_src:
-                written_requirements_content = check_src.read()
-                self.assertEqual(written_requirements_content, expected_requirements_txt)
+        dst = Path(__file__).parent / "requirements.txt"
+        requirements_no_version = Path(__file__).parent / "requirements_no_version.txt"
+        # handle multiple different return values for different times sanitize_path() is called
+        sanitize_path_mocked.side_effect = [requirements_no_version, dst]
+        test_logger.info(f"requirements_no_version:{requirements_no_version}!")
+        test_logger.info(f"file exists:{requirements_no_version.is_file()}!")
+        update_requirements_txt.get_requirements_txt(requirements_no_version, dst)
+        with open(dst) as check_src:
+            written_requirements_content = check_src.read()
+            self.assertEqual(written_requirements_content, expected_requirements_txt)
+        dst.unlink()
+
+    @patch.object(update_requirements_txt, "get_dependencies_freeze")
+    def test_get_requirements_txt_traversalpath_ex(self, get_dependencies_freeze_mocked):
+        get_dependencies_freeze_mocked.return_value = freeze_mocked
+        with self.assertRaises(OSError):
+            with tempfile.NamedTemporaryFile(prefix="../requirements_", suffix=".txt", dir=Path.cwd()) as dst:
+                try:
+                    requirements_no_version = Path(__file__).parent / "requirements_no_version.txt"
+                    update_requirements_txt.get_requirements_txt(requirements_no_version, dst.name)
+                except OSError as ose:
+                    base_path = Path.cwd()
+                    str_ose = str(ose).replace("  ", "").replace("\n", "")
+                    # traversal path exception
+                    self.assertEqual(str_ose[:26], "Basename of resolved path ")
+                    self.assertIn(str(dst.name), str_ose)
+                    self.assertIn(str(base_path), str_ose)
+                    raise ose
+
+    @mock.patch.object(argparse.ArgumentParser, 'parse_args')
+    def test_get_args(self, parse_args_mocked):
+        from samgis_core.utilities.update_requirements_txt import get_args
+
+        parse_args_mocked.return_value = argparse.Namespace(
+            requirements_no_versions_filename="req_input.txt",
+            requirements_output_filename="req_output.txt"
+        )
+        args = get_args([])
+        self.assertEqual(vars(args), {
+            'requirements_no_versions_filename': 'req_input.txt',
+            'requirements_output_filename': 'req_output.txt'
+        })
+
+    def test_get_args_exception(self):
+        from samgis_core.utilities.update_requirements_txt import get_args
+        with captured_output() as (out, err), self.assertRaises(SystemExit):
+            try:
+                get_args([])
+            except SystemExit as sysexit:
+                out.seek(0)
+                self.assertEqual(out.read(), '')
+                err.seek(0)
+                err_content = err.read()
+                self.assertIn('--req_no_version_path', err_content)
+                self.assertIn('--req_output_path', err_content)
+                self.assertEqual(sysexit.code, 2)
+                raise sysexit

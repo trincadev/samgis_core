@@ -1,3 +1,5 @@
+import argparse
+import sys
 from pathlib import Path
 import structlog
 
@@ -15,7 +17,8 @@ def get_dependencies_freeze() -> dict:
 
 def sanitize_path(filename: str | Path) -> Path:
     filename = Path(filename)
-    base_path = Path(__file__).parent.resolve(strict=True)
+    base_path = Path.cwd().resolve(strict=True)
+    logger.info(f"base_path (current working folder):{base_path} ...")
     safe_path = filename.resolve(strict=True)
     try:
         assert base_path / filename.name == safe_path
@@ -60,23 +63,22 @@ def get_requirements_txt(requirements_no_versions_filename: str | Path, requirem
     logger.info(f"written requirements to file:{requirements_output_filename}!")
 
 
-if __name__ == '__main__':
-    import argparse
-    from pathvalidate.argparse import sanitize_filepath_arg
-
+def get_args(current_args: list) -> argparse.Namespace:
     warning = "This file must be within the current folder."
     parser = argparse.ArgumentParser(description="Update requirements.txt from current installed packages.")
     parser.add_argument(
         "--req_no_version_path", required=True,
-        type=sanitize_filepath_arg,
         help=f"file path for requirements list packages without versions. {warning}."
     )
     parser.add_argument(
         "--req_output_path", required=True,
-        type=sanitize_filepath_arg,
         help=f"file path for output requirements. {warning}."
     )
-    args = parser.parse_args()
+    return parser.parse_args(current_args)
+
+
+if __name__ == '__main__':
+    args = get_args(sys.argv[1:])
     get_requirements_txt(
         requirements_no_versions_filename=args.req_no_version_path,
         requirements_output_filename=args.req_output_path
