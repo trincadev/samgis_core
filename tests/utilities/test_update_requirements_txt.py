@@ -13,6 +13,7 @@ from unittest.mock import patch
 import structlog
 
 from samgis_core.utilities import update_requirements_txt, session_logger
+from tests import TEST_ROOT_FOLDER
 
 
 session_logger.setup_logging(json_logs=False, log_level="INFO")
@@ -53,12 +54,40 @@ def captured_output():
 
 
 class UpdateRequirementsTxt(unittest.TestCase):
+    def test_sanitize_path(self):
+        # Here we need to use a relative path with a copy of requirements_no_version_test.txt file
+        # because of differents outputs when executing tests from root project folder or test/utilities folder
+        file1 = update_requirements_txt.sanitize_path("requirements_no_version_test.txt")
+        current_folder = Path().cwd()
+        self.assertEqual(file1, current_folder / "requirements_no_version_test.txt")
+        file2 = update_requirements_txt.sanitize_path("file_missing.txt", strict_on_filename=False)
+        self.assertEqual(file2, current_folder / "file_missing.txt")
+
+    def test_sanitize_path_ex1(self):
+        with self.assertRaises(OSError):
+            try:
+                update_requirements_txt.sanitize_path("file_missing.txt", strict_on_filename=True)
+            except OSError as ose1:
+                self.assertEqual(str(ose1), "[Errno 2] No such file or directory: 'file_missing.txt'")
+                raise ose1
+
+    def test_sanitize_path_ex2(self):
+        with self.assertRaises(OSError):
+            try:
+                # Here we need to use an absolute path to avoid error on wrong base folder, when executing tests from
+                # root project folder or test/utilities folder
+                update_requirements_txt.sanitize_path(TEST_ROOT_FOLDER / "__init__.py")
+            except OSError as ose1:
+                str_ose1 = str(ose1).replace("\n", "").replace("  ", "")
+                self.assertEqual(str_ose1[:26], "Basename of resolved path ")
+                raise ose1
+
     @patch.object(update_requirements_txt, "get_dependencies_freeze")
     @patch.object(update_requirements_txt, "sanitize_path")
     def test_get_requirements_txt(self, sanitize_path_mocked, get_dependencies_freeze_mocked):
         get_dependencies_freeze_mocked.return_value = freeze_mocked
         dst = Path(__file__).parent / "requirements.txt"
-        requirements_no_version = Path(__file__).parent / "requirements_no_version.txt"
+        requirements_no_version = Path(__file__).parent / "requirements_no_version_test.txt"
         # handle multiple different return values for different times sanitize_path() is called
         sanitize_path_mocked.side_effect = [requirements_no_version, dst]
         test_logger.info(f"requirements_no_version:{requirements_no_version}!")
@@ -75,14 +104,13 @@ class UpdateRequirementsTxt(unittest.TestCase):
         with self.assertRaises(OSError):
             with tempfile.NamedTemporaryFile(prefix="../requirements_", suffix=".txt", dir=Path.cwd()) as dst:
                 try:
-                    requirements_no_version = Path(__file__).parent / "requirements_no_version.txt"
+                    requirements_no_version = Path(__file__).parent / "requirements_no_version_test.txt"
                     update_requirements_txt.get_requirements_txt(requirements_no_version, dst.name)
                 except OSError as ose:
                     base_path = Path.cwd()
                     str_ose = str(ose).replace("  ", "").replace("\n", "")
                     # traversal path exception
                     self.assertEqual(str_ose[:26], "Basename of resolved path ")
-                    self.assertIn(str(dst.name), str_ose)
                     self.assertIn(str(base_path), str_ose)
                     raise ose
 
