@@ -15,11 +15,16 @@ def get_dependencies_freeze() -> dict:
     return {dist.metadata["name"]: dist.version for dist in metadata.distributions()}
 
 
-def sanitize_path(filename: str | Path) -> Path:
+def sanitize_path(filename: str | Path, strict_on_filename: bool = True) -> Path:
     filename = Path(filename)
     base_path = Path.cwd().resolve(strict=True)
     logger.info(f"base_path (current working folder):{base_path} ...")
-    safe_path = filename.resolve(strict=True)
+    try:
+        safe_path = filename.resolve(strict=strict_on_filename)
+    except FileNotFoundError as fnfe:
+        logger.error(f"filename not found:{filename.absolute()}.")
+        logger.error(f"fnfe:{fnfe}.")
+        raise fnfe
     try:
         assert base_path / filename.name == safe_path
     except AssertionError:
@@ -46,15 +51,18 @@ def get_requirements_txt(requirements_no_versions_filename: str | Path, requirem
     logger.info("start requirements.txt update...")
     freeze_dict = get_dependencies_freeze()
     logger.debug(f"freeze_dict:{freeze_dict}.")
-    requirements_no_versions_filename = sanitize_path(requirements_no_versions_filename)
-    with open(requirements_no_versions_filename) as req_src:
+    logger.debug(f"requirements_no_versions_filename:{requirements_no_versions_filename}.")
+    requirements_no_versions_filename_sanitized = sanitize_path(requirements_no_versions_filename)
+    logger.info(f"requirements_no_versions_filename_sanitized:{requirements_no_versions_filename_sanitized}.")
+    with open(requirements_no_versions_filename_sanitized) as req_src:
         packages_no_requirements = req_src.read().split("\n")
         requirements_output = {
             name: version for name, version in sorted(freeze_dict.items()) if name in packages_no_requirements
         }
-    logger.info(f"requirements to write:{requirements_output}.")
-    requirements_output_filename = sanitize_path(requirements_output_filename)
-    with open(requirements_output_filename, "w") as dst:
+    logger.debug(f"requirements to write:{requirements_output}.")
+    requirements_output_filename_sanitized = sanitize_path(requirements_output_filename, strict_on_filename=False)
+    logger.debug(f"requirements_output_filename_sanitized:{requirements_output_filename_sanitized}.")
+    with open(requirements_output_filename_sanitized, "w") as dst:
         out = ""
         for name, version in requirements_output.items():
             out += f"{name}=={version}\n"
@@ -65,6 +73,7 @@ def get_requirements_txt(requirements_no_versions_filename: str | Path, requirem
 
 def get_args(current_args: list) -> argparse.Namespace:
     warning = "This file must be within the current folder."
+    logger.info(f"current_args:{current_args}.")
     parser = argparse.ArgumentParser(description="Update requirements.txt from current installed packages.")
     parser.add_argument(
         "--req_no_version_path", required=True,
@@ -74,11 +83,20 @@ def get_args(current_args: list) -> argparse.Namespace:
         "--req_output_path", required=True,
         help=f"file path for output requirements. {warning}."
     )
-    return parser.parse_args(current_args)
+    parser.add_argument(
+        "--loglevel", required=False,
+        default="INFO",
+        choices=["DEBUG", "INFO"],
+        help=f"log level (default INFO)."
+    )
+    args = parser.parse_args(current_args)
+    logger.debug(f"args:{args}.")
+    return args
 
 
 if __name__ == '__main__':
     args = get_args(sys.argv[1:])
+    session_logger.setup_logging(json_logs=False, log_level=args.loglevel)
     get_requirements_txt(
         requirements_no_versions_filename=args.req_no_version_path,
         requirements_output_filename=args.req_output_path
