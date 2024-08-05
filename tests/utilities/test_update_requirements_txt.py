@@ -2,7 +2,6 @@ import argparse
 import contextlib
 import io
 import os
-import pathlib
 import sys
 import tempfile
 import unittest
@@ -54,9 +53,15 @@ def captured_output():
 
 
 class UpdateRequirementsTxt(unittest.TestCase):
+    def setUp(self):
+        # Avoid errors caused by different starting folders
+        self.initial_folder = Path.cwd()
+        os.chdir(TEST_ROOT_FOLDER / "utilities")
+
+    def tearDown(self):
+        os.chdir(self.initial_folder)
+
     def test_sanitize_path(self):
-        # Here we need to use a relative path with a copy of requirements_no_version_test.txt file
-        # because of differents outputs when executing tests from root project folder or test/utilities folder
         file1 = update_requirements_txt.sanitize_path("requirements_no_version_test.txt")
         current_folder = Path().cwd()
         self.assertEqual(file1, current_folder / "requirements_no_version_test.txt")
