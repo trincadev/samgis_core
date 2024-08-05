@@ -127,7 +127,7 @@ def build_frontend(
     run_command(["pnpm", "install"])
 
     # build frontend dist and assert for its correct build
-    output_css = str(output_dist_folder / output_css_filename)
+    output_css = str(output_css_pathfile)
     output_index_html = str(output_dist_folder / index_page_filename)
     output_dist_folder = str(output_dist_folder)
     app_logger.info(f"pnpm: build '{output_dist_folder}'...")
