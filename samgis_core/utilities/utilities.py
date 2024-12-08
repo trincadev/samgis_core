@@ -63,12 +63,14 @@ def base64_encode(sb: str | bytes) -> bytes:
     return base64.b64encode(sb_bytes)
 
 
-def hash_calculate(arr) -> str | bytes:
+def hash_calculate(arr_or_path, is_file: bool, read_mode: str = "rb") -> str | bytes:
     """
     Return computed hash from input variable (typically a numpy array).
 
     Args:
-        arr: input variable
+        arr_or_path: input variable
+        is_file: whether input is a file or not
+        read_mode: mode for reading file
 
     Returns:
         computed hash from input variable
@@ -77,24 +79,41 @@ def hash_calculate(arr) -> str | bytes:
     from base64 import b64encode
     from numpy import ndarray as np_ndarray
 
-    if isinstance(arr, np_ndarray):
-        hash_fn = sha256(arr.data)
-    elif isinstance(arr, dict):
+    if is_file:
+        with open(arr_or_path, read_mode) as file_to_check:
+            # read contents of the file
+            arr_or_path = file_to_check.read()
+            # # pipe contents of the file through
+            # try:
+            #     return hashlib.sha256(data).hexdigest()
+            # except TypeError:
+            #     app_logger.warning(
+            #         f"TypeError, re-try encoding arg:{arr_or_path},type:{type(arr_or_path)}."
+            #     )
+            #     return hashlib.sha256(data.encode("utf-8")).hexdigest()
+
+    if isinstance(arr_or_path, np_ndarray):
+        hash_fn = sha256(arr_or_path.data)
+    elif isinstance(arr_or_path, dict):
         import json
 
-        serialized = serialize(arr)
-        variable_to_hash = json.dumps(serialized, sort_keys=True).encode('utf-8')
+        serialized = serialize(arr_or_path)
+        variable_to_hash = json.dumps(serialized, sort_keys=True).encode("utf-8")
         hash_fn = sha256(variable_to_hash)
-    elif isinstance(arr, str):
+    elif isinstance(arr_or_path, str):
         try:
-            hash_fn = sha256(arr)
+            hash_fn = sha256(arr_or_path)
         except TypeError:
-            app_logger.warning(f"TypeError, re-try encoding arg:{arr},type:{type(arr)}.")
-            hash_fn = sha256(arr.encode('utf-8'))
-    elif isinstance(arr, bytes):
-        hash_fn = sha256(arr)
+            app_logger.warning(
+                f"TypeError, re-try encoding arg:{arr_or_path},type:{type(arr_or_path)}."
+            )
+            hash_fn = sha256(arr_or_path.encode("utf-8"))
+    elif isinstance(arr_or_path, bytes):
+        hash_fn = sha256(arr_or_path)
     else:
-        raise ValueError(f"variable 'arr':{arr} of type '{type(arr)}' not yet handled.")
+        raise ValueError(
+            f"variable 'arr':{arr_or_path} of type '{type(arr_or_path)}' not yet handled."
+        )
     return b64encode(hash_fn.digest())
 
 

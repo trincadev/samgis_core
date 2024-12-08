@@ -9,24 +9,24 @@ class TestUtilities(unittest.TestCase):
 
         size = 5
         input_arr = np.arange(size**2).reshape((size, size))
-        hash_output = hash_calculate(input_arr)
+        hash_output = hash_calculate(input_arr, is_file=False)
         self.assertEqual(hash_output, b'KgoWp86FwhH2tuinWOfsCfn9d+Iw6B10wwqFfdUeLeY=')
 
-        hash_output = hash_calculate({"arr": input_arr})
+        hash_output = hash_calculate({"arr": input_arr}, is_file=False)
         self.assertEqual(hash_output, b'M/EYsBPRQLVP9T299xHyOrtT7bdCkIDaMmW2hslMays=')
 
-        hash_output = hash_calculate("a test string...")
+        hash_output = hash_calculate("a test string...", is_file=False)
         self.assertEqual(hash_output, b'29a8JwujQklQ6MKQhPyix6G1i/7Pp0uUg5wFybKuCC0=')
 
-        hash_output = hash_calculate("123123123")
+        hash_output = hash_calculate("123123123", is_file=False)
         self.assertEqual(hash_output, b'ky88G1YlfOhTmsJp16q0JVDaz4gY0HXwvfGZBWKq4+8=')
 
-        hash_output = hash_calculate(b"a byte test string...")
+        hash_output = hash_calculate(b"a byte test string...", is_file=False)
         self.assertEqual(hash_output, b'dgSt/jiqLk0HJ09Xqe/BWzMvnYiOqzWlcSCCfN767zA=')
 
         with self.assertRaises(ValueError):
             try:
-                hash_calculate(1)
+                hash_calculate(1, is_file=False)
             except ValueError as ve:
                 self.assertEqual(str(ve), "variable 'arr':1 of type '<class 'int'>' not yet handled.")
                 raise ve
@@ -66,8 +66,11 @@ class TestUtilities(unittest.TestCase):
         arr = np.arange(-50, 50).reshape(10, 10)
         arr[4:7, 2:8] = 89
         normalized = normalize_array(arr)
-        assert hash_calculate(normalized) == b'UdCAAQI/QcfLG8Hzgivf7FPSegNwQSXEaXX5d0Lg1Z0='
+        hash_img = hash_calculate(normalized, is_file=False)
+        assert hash_img == b'UdCAAQI/QcfLG8Hzgivf7FPSegNwQSXEaXX5d0Lg1Z0='
         normalized = normalize_array(arr, new_h=1)
-        assert hash_calculate(normalized) == b'CZsH43+hgXZjXTqhzW7Rv4Qd93eHfd7QU7BnObmZUsc='
+        hash_normalized = hash_calculate(normalized, is_file=False)
+        assert hash_normalized == b'CZsH43+hgXZjXTqhzW7Rv4Qd93eHfd7QU7BnObmZUsc='
         normalized = normalize_array(arr, new_h=128., type_normalization="float")
-        assert hash_calculate(normalized) == b'+HYPe8utlYKRqrizYPdZUINuIPqv0cIWI1zKa4tscno='
+        hash_normalized = hash_calculate(normalized, is_file=False)
+        assert hash_normalized == b'+HYPe8utlYKRqrizYPdZUINuIPqv0cIWI1zKa4tscno='

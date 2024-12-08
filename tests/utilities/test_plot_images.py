@@ -25,7 +25,7 @@ class TestPlotImages(unittest.TestCase):
             fig.savefig(tmp_file.name)
             saved_img = Image.open(tmp_file.name)
             np_saved_img = np.array(saved_img)
-            hash_output = hash_calculate(np_saved_img)
+            hash_output = hash_calculate(np_saved_img, is_file=False)
             assert hash_output == b'YRrEKeLZNTqxxHdzrEFpASiFQPhngRetOtDeu1D5Z8I='
 
     def test_imshow_raster(self):
@@ -46,7 +46,7 @@ class TestPlotImages(unittest.TestCase):
             fig.savefig(tmp_file.name)
             saved_img = Image.open(tmp_file.name)
             np_saved_img = np.array(saved_img)
-            hash_output = hash_calculate(np_saved_img)
+            hash_output = hash_calculate(np_saved_img, is_file=False)
             assert hash_output == b'1nEoSvWN7cMRjkaw1pVF6UyygNTYWIUedlDmkKSi0eY='
 
 

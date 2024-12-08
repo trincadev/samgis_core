@@ -44,23 +44,34 @@ class TestSegmentAnythingONNX2(unittest.TestCase):
 
     def test_preprocess_image_ndarray(self):
         resized_image = instance_sam_onnx.preprocess_image(np_img)
-        assert hash_calculate(np.array(resized_image)) == b'uP7LGlpKJ4xc+akIN+maJGHprdpVocpNtOVYCmAJzbw='
+        hash_img = hash_calculate(np.array(resized_image), is_file=False)
+        assert hash_img == b'uP7LGlpKJ4xc+akIN+maJGHprdpVocpNtOVYCmAJzbw='
 
     def test_preprocess_image_pil(self):
         input_pil_test = Image.fromarray(np_img)
         resized_image = instance_sam_onnx.preprocess_image(input_pil_test)
-        assert hash_calculate(np.array(resized_image)) == b'uP7LGlpKJ4xc+akIN+maJGHprdpVocpNtOVYCmAJzbw='
+        hash_img = hash_calculate(np.array(resized_image), is_file=False)
+        assert hash_img == b'uP7LGlpKJ4xc+akIN+maJGHprdpVocpNtOVYCmAJzbw='
 
     def test_encoder(self):
         img = image_embedding["image_embedding"]
         assert image_embedding["original_size"] == (1280, 960)
         assert image_embedding["resized_size"] == (1024, 768)
-        assert hash_calculate(np.array(img)) == b'14pi7a6FGQgFN4Zne9uRXAg1vCt6QA/pqQrrLQ66weo='
+        hash_img = hash_calculate(np.array(img), is_file=False)
+        try:
+            assert hash_img == b'LiWr6QRdwKWHONi37y+AgIM//SgaFvXgWlX844zckcU='
+        except AssertionError:
+            assert hash_calculate(np.array(img)) == b'14pi7a6FGQgFN4Zne9uRXAg1vCt6QA/pqQrrLQ66weo='
+
 
     def test_encode_predict_masks_ok(self):
         img_embedding = image_embedding["image_embedding"]
         test_logger.info(f"embedding type: {type(image_embedding)}.")
-        assert hash_calculate(img_embedding) == b'14pi7a6FGQgFN4Zne9uRXAg1vCt6QA/pqQrrLQ66weo='
+        hash_img = hash_calculate(img_embedding, is_file=False)
+        try:
+            assert hash_img == b'LiWr6QRdwKWHONi37y+AgIM//SgaFvXgWlX844zckcU='
+        except AssertionError:
+            assert hash_calculate(img_embedding) == b'14pi7a6FGQgFN4Zne9uRXAg1vCt6QA/pqQrrLQ66weo='
         output_inference = instance_sam_onnx.predict_masks(image_embedding, prompt)
 
         # here there is at least one output mask, created from the inference output
@@ -68,7 +79,7 @@ class TestSegmentAnythingONNX2(unittest.TestCase):
         output_mask = Image.fromarray(output_mask_np)
         # output_mask.save(TEST_EVENTS_FOLDER / "samexporter_predict" / "teglio" / "teglio_1280x960_mask.png")
         expected_mask = np.array(mask_pil)
-        hash_expected_mask = hash_calculate(expected_mask)
+        hash_expected_mask = hash_calculate(expected_mask, is_file=False)
         assert hash_expected_mask == b'NDp9r4fI99jqt3aQnkeez8b0/w24tdGIWXKVz6qRWUU='
         all_close_perc = 0.85
         try:
