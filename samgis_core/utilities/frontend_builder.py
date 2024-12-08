@@ -1,6 +1,7 @@
 import os
 import subprocess
 from pathlib import Path
+from typing import Mapping
 
 from dotenv import load_dotenv
 
@@ -51,7 +52,7 @@ def read_std_out_err(std_out_err: str, output_type: str, command: ListStr) -> No
     app_logger.info("########")
 
 
-def run_command(commands_list: ListStr, capture_output: bool = True, text: bool = True, check: bool = True) -> None:
+def run_command(commands_list: ListStr, capture_output: bool = True, text: bool = True, check: bool = True, env: Mapping[str, str] | None = None) -> None:
     """
     Run a system command and capture its output.
     See https://docs.python.org/3.11/library/subprocess.html#subprocess.run for more details
@@ -63,6 +64,7 @@ def run_command(commands_list: ListStr, capture_output: bool = True, text: bool 
         check: If check is true, and the process exits with a non-zero exit code, a CalledProcessError exception will
                be raised. Attributes of that exception hold the arguments, the exit code, and stdout and stderr if they
                were captured.
+        env: environment variables
 
     Returns:
 
@@ -72,7 +74,8 @@ def run_command(commands_list: ListStr, capture_output: bool = True, text: bool 
             commands_list,
             capture_output=capture_output,
             text=text,
-            check=check
+            check=check,
+            env=env
         )
         read_std_out_err(output_content_home.stdout, "stdout", commands_list)
         read_std_out_err(output_content_home.stderr, "stderr", commands_list)
@@ -141,6 +144,50 @@ def build_frontend(
     run_command(["ls", "-l", output_css])
     app_logger.info("end!")
     return True
+
+
+def get_installed_node():
+    """
+    Get the installed node bin folder given the environment variables:
+    - NODE_DIR (current node installed), without the bin subfolder
+    - NODE_DIR_PARENT (parent folder of the node installed versions, e.g. `~/.nvm/versions/node/` )
+
+    Returns:
+        node bin path
+
+    """
+    node_dir = os.getenv("NODE_DIR")
+    if not (node_dir and Path(node_dir).exists() and Path(node_dir).is_dir()):
+        app_logger.error(f"node_dir:{node_dir} not found.")
+        node_dir_env = os.getenv("NODE_DIR_PARENT")
+        assert node_dir_env is not None and node_dir_env != "", "NODE_DIR_PARENT/NODE_DIR env variable not found."
+        node_dir_parent = Path(os.getenv("NODE_DIR_PARENT"))
+        app_logger.error(f"try with '{node_dir_parent}' ...")
+        assert node_dir_parent.exists() and node_dir_parent.is_dir(), "node_dir_parent not found"
+        list_node_folders = [f.path for f in os.scandir(node_dir_parent) if f.is_dir()]
+        list_node_folders.sort()
+        assert isinstance(list_node_folders, list) and len(list_node_folders) > 0, "no node folders found."
+        node_dir = list_node_folders.pop()
+    node_dir_bin = Path(node_dir) / "bin"
+    assert node_dir_bin.exists() and node_dir_bin.is_dir(), f"node's bin not found or not a directory: {node_dir}."
+    return node_dir_bin
+
+
+def get_path_with_node_dir():
+    """
+    Get the PATH environment variable with the node bin folder.
+
+    Returns:
+        PATH environment variable with the node bin folder
+
+    """
+    node_dir = get_installed_node()
+    path = os.getenv("PATH")
+    if path is None or path == "":
+        return f"{node_dir}:"
+    if "node" not in path:
+        return f"{node_dir}:{path}"
+    return path
 
 
 if __name__ == '__main__':

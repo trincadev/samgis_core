@@ -1,20 +1,88 @@
 import os
-from pathlib import Path
+import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
+from samgis_core.utilities import frontend_builder
 from tests import TEST_ROOT_FOLDER
 
 
 static_folder = TEST_ROOT_FOLDER / "static"
 static_css_path = str(static_folder / "src" / "input.css")
+home = os.getenv("HOME")
+tmp = Path(tempfile.gettempdir())
+nvm_dir_mocked = tmp / ".nvm"
+node_dir_parent_mocked = nvm_dir_mocked /"versions" / "node"
+node_dir_mocked = node_dir_parent_mocked / "v22.12.0"
+node_dir_mocked_bin = node_dir_mocked / "bin"
 
+
+class TestGetNodeDirFolder(unittest.TestCase):
+    def setUp(self):
+        node_dir_mocked_bin.mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self):
+        node_dir_mocked_bin.rmdir()
+        node_dir_mocked.rmdir()
+        node_dir_parent_mocked.rmdir()
+        (nvm_dir_mocked /"versions").rmdir()
+        nvm_dir_mocked.rmdir()
+
+    @mock.patch.dict(os.environ, {"NODE_DIR": str(node_dir_mocked)})
+    def test_get_installed_node_dir_ok(self):
+        node_dir = frontend_builder.get_installed_node()
+        assert str(node_dir) == str(node_dir_mocked_bin)
+
+    @mock.patch.dict(os.environ, {"NODE_DIR_PARENT": str(node_dir_parent_mocked)})
+    def test_get_installed_node_dir_parent_ok(self):
+        node_dir = frontend_builder.get_installed_node()
+        assert str(node_dir) == str(node_dir_mocked_bin)
+
+    @mock.patch.dict(os.environ, {"NODE_DIR_PARENT": "", "NODE_DIR": ""})
+    def test_get_installed_node_no_env(self):
+        with self.assertRaises(AssertionError):
+            try:
+                frontend_builder.get_installed_node()
+            except AssertionError as ae:
+                assert "NODE_DIR_PARENT/NODE_DIR env variable not found." in str(ae)
+                raise ae
+
+class TestGetPathWithNodeDir(unittest.TestCase):
+    def setUp(self):
+        node_dir_mocked_bin.mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self):
+        node_dir_mocked_bin.rmdir()
+        node_dir_mocked.rmdir()
+        node_dir_parent_mocked.rmdir()
+        (nvm_dir_mocked /"versions").rmdir()
+        nvm_dir_mocked.rmdir()
+
+    @mock.patch.dict(os.environ, {"PATH": "", "NODE_DIR": str(node_dir_mocked)})
+    def test_get_path_with_node_dir_path_none(self):
+        path = frontend_builder.get_path_with_node_dir()
+        assert f"{node_dir_mocked_bin}:" == path
+
+    @mock.patch.dict(os.environ, {"PATH": "/bin:", "NODE_DIR": str(node_dir_mocked)})
+    def test_get_path_with_node_dir_path_no_node(self):
+        path = frontend_builder.get_path_with_node_dir()
+        assert f"{node_dir_mocked_bin}:/bin:" == path
+
+    @mock.patch.dict(os.environ, {"PATH": f"{node_dir_mocked_bin}:/bin:", "NODE_DIR": str(node_dir_mocked)})
+    def test_get_path_with_node_dir_path_no_node(self):
+        path = frontend_builder.get_path_with_node_dir()
+        assert f"{node_dir_mocked_bin}:/bin:" == path
 
 class TestFrontendBuilder(unittest.TestCase):
-    @mock.patch.dict(os.environ, {"INPUT_CSS_PATH": static_css_path})
+    # mock PATH env variable with the installed node path
+    @mock.patch.dict(os.environ, {
+        "INPUT_CSS_PATH": static_css_path,
+        "NODE_DIR": str(node_dir_mocked),
+        "PATH": frontend_builder.get_path_with_node_dir()
+    })
     def test_frontend_builder(self):
         import shutil
-        from samgis_core.utilities import frontend_builder
 
         static_dist_folder = static_folder / "dist"
         assert frontend_builder.build_frontend(
