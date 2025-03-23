@@ -1,41 +1,41 @@
-[tool.poetry]
+[project]
 name = "samgis_core"
-version = "3.2.2"
+version = "3.3.0"
 description = "SamGIS CORE"
-authors = ["alessandro trinca tornidor <alessandro@trinca.tornidor.com>"]
-license = "MIT license"
+authors = [
+    {name = "alessandro trinca tornidor", email = "alessandro@trinca.tornidor.com"}
+]
+license = {text = "MIT license"}
 readme = "README.md"
+requires-python = ">=3.10, <3.13"
+dependencies = [
+    "bson (>=0.5.10,<0.6.0)",
+    "numpy (>=2.2.4,<3.0.0)",
+    "pillow (>=11.1.0,<12.0.0)",
+    "python-dotenv (>=1.0.1,<2.0.0)",
+    "structlog (>=25.2.0,<26.0.0)"
+]
 
-[metadata]
-name = "samgis_core"
-version = "3.2.2"
-
-[tool.poetry.urls]
+[project.urls]
 Source = "https://gitlab.com/aletrn/samgis_core"
 
-[tool.poetry.dependencies]
-bson = "^0.5.10"
-numpy = "^2.1.2"
-pillow = "^11.0.0"
-python = ">=3.10, <3.13"
-python-dotenv = "^1.0.1"
-structlog = "^24.4.0"
+[tool.poetry]
 
 [tool.poetry.group.onnxruntime]
 optional = true
 
 [tool.poetry.group.onnxruntime.dependencies]
-onnxruntime = "^1.20.1"
+onnxruntime = "^1.21.0"
 
 [tool.poetry.group.test]
 optional = true
 
 [tool.poetry.group.test.dependencies]
 mpld3 = "^0.5.10"
-pytest = "^8.3.4"
+pytest = "^8.3.5"
 pytest-cov = "^6.0.0"
 rasterio = "^1.4.3"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
