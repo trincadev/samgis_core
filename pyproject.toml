@@ -1,6 +1,6 @@
 [project]
 name = "samgis_core"
-version = "3.3.0"
+version = "3.3.1"
 description = "SamGIS CORE"
 authors = [
     {name = "alessandro trinca tornidor", email = "alessandro@trinca.tornidor.com"}
