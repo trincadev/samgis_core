@@ -123,9 +123,10 @@ def build_frontend(
     # install deps
     os.chdir(project_root_folder / "static")
     current_folder = os.getcwd()
-    app_logger.info(f"current_folder:{current_folder}, install pnpm...")
-    run_command(["which", "npm"])
-    run_command(["npm", "install", "-g", "npm", "pnpm"])
+    app_logger.info(f"current_folder:{current_folder}, check for node path, version and install pnpm...")
+    run_command(["which", "node"])
+    run_command(["node", "--version"])
+    run_command(["corepack", "use", "pnpm@latest"])
     app_logger.info("install pnpm dependencies...")
     run_command(["pnpm", "install"])
 

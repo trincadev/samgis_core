@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from samgis_core import app_logger
 from samgis_core.utilities import frontend_builder
 from tests import TEST_ROOT_FOLDER
 
@@ -32,11 +33,13 @@ class TestGetNodeDirFolder(unittest.TestCase):
     @mock.patch.dict(os.environ, {"NODE_DIR": str(node_dir_mocked)})
     def test_get_installed_node_dir_ok(self):
         node_dir = frontend_builder.get_installed_node()
+        app_logger.info(f"node_dir with NODE_DIR:{node_dir}.")
         assert str(node_dir) == str(node_dir_mocked_bin)
 
     @mock.patch.dict(os.environ, {"NODE_DIR_PARENT": str(node_dir_parent_mocked)})
     def test_get_installed_node_dir_parent_ok(self):
         node_dir = frontend_builder.get_installed_node()
+        app_logger.info(f"node_dir with NODE_DIR_PARENT:{node_dir}.")
         assert str(node_dir) == str(node_dir_mocked_bin)
 
     @mock.patch.dict(os.environ, {"NODE_DIR_PARENT": "", "NODE_DIR": ""})
@@ -70,17 +73,13 @@ class TestGetPathWithNodeDir(unittest.TestCase):
         assert f"{node_dir_mocked_bin}:/bin:" == path
 
     @mock.patch.dict(os.environ, {"PATH": f"{node_dir_mocked_bin}:/bin:", "NODE_DIR": str(node_dir_mocked)})
-    def test_get_path_with_node_dir_path_no_node(self):
+    def test_get_path_with_node_dir_path_no_node__node_dir_mocked_bin_bin(self):
         path = frontend_builder.get_path_with_node_dir()
+        app_logger.info(f"PATH '{path}'.")
         assert f"{node_dir_mocked_bin}:/bin:" == path
 
+
 class TestFrontendBuilder(unittest.TestCase):
-    # mock PATH env variable with the installed node path
-    @mock.patch.dict(os.environ, {
-        "INPUT_CSS_PATH": static_css_path,
-        "NODE_DIR": str(node_dir_mocked),
-        "PATH": frontend_builder.get_path_with_node_dir()
-    })
     def test_frontend_builder(self):
         import shutil
 
@@ -114,3 +113,8 @@ class TestFrontendBuilder(unittest.TestCase):
             force_build=False
         )
         shutil.rmtree(static_dist_folder, ignore_errors=False)
+
+
+if __name__ == '__main__':
+    unittest.main()
+    print("all ok!")
