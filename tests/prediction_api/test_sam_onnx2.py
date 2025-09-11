@@ -5,6 +5,7 @@ from PIL import Image
 
 from samgis_core import MODEL_FOLDER
 from samgis_core.prediction_api.sam_onnx2 import SegmentAnythingONNX2
+# from samgis_core.utilities import plot_images
 from samgis_core.utilities.constants import MODEL_ENCODER_NAME, MODEL_DECODER_NAME
 from samgis_core.utilities.utilities import hash_calculate
 from tests import TEST_EVENTS_FOLDER, test_logger
@@ -29,7 +30,8 @@ image_embedding = instance_sam_onnx.encode(img_pil)
 expected_hash_list = [
     b'LiWr6QRdwKWHONi37y+AgIM//SgaFvXgWlX844zckcU=',
     b'14pi7a6FGQgFN4Zne9uRXAg1vCt6QA/pqQrrLQ66weo=',
-    b'5Y00HY9+gZe15U3XMLh+U/Zl5qa0tRuKHrzkZniZu7U='
+    b'5Y00HY9+gZe15U3XMLh+U/Zl5qa0tRuKHrzkZniZu7U=',
+    b'YM8Vi/RdFzOCwDN62LeTqJ5htttpuvWW9s3HcqOtB+k='
 ]
 
 
@@ -64,7 +66,6 @@ class TestSegmentAnythingONNX2(unittest.TestCase):
         assert image_embedding["resized_size"] == (1024, 768)
         hash_img = hash_calculate(np.array(img), is_file=False)
         self.assertIn(hash_img, expected_hash_list)
-
 
     def test_encode_predict_masks_ok(self):
         img_embedding = image_embedding["image_embedding"]
@@ -121,3 +122,7 @@ class TestSegmentAnythingONNX2(unittest.TestCase):
                 test_logger.error(ie)
                 assert str(ie) == "list index out of range"
                 raise ie
+
+
+if __name__ == "__main__":
+    unittest.main()
