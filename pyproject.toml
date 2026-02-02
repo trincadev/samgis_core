@@ -1,13 +1,11 @@
 [project]
 name = "samgis_core"
-version = "3.4.3"
+version = "3.5.0"
 description = "SamGIS CORE"
-authors = [
-    {name = "alessandro trinca tornidor", email = "alessandro@trinca.tornidor.com"}
-]
+authors = [{name = "alessandro trinca tornidor", email = "alessandro@trinca.tornidor.com"}]
 license = {text = "MIT license"}
 readme = "README.md"
-requires-python = ">=3.10, <3.13"
+requires-python = ">=3.10, <3.14"
 dependencies = [
     "bson (>=0.5.10,<0.6.0)",
     "numpy (>=2.2.4,<3.0.0)",
