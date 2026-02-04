@@ -36,7 +36,8 @@ def create_folder_if_not_exists(pathname: Path | str):
 
     print(f"assertion: pathname exists and is a folder: {current_pathname} ...")
     logging.info(f"assertion: pathname exists and is a folder: {current_pathname} ...")
-    assert current_pathname.is_dir()
+    if not current_pathname.is_dir():
+        raise OSError(f"folder not found: {current_pathname}.")
 
 
 def folders_creation(folders_map: dict | str = None, ignore_errors: bool = True):
@@ -60,9 +61,9 @@ def folders_creation(folders_map: dict | str = None, ignore_errors: bool = True)
         for folder_env_ref, folder_env_path in folders_dict.items():
             logging.info(f"folder_env_ref:{folder_env_ref}, folder_env_path:{folder_env_path}.")
             create_folder_if_not_exists(folder_env_path)
-            print("========")
-            if enforce_validation_with_getenv:
-                assert os.getenv(folder_env_ref) == folder_env_path
+            print("="*20)
+            if enforce_validation_with_getenv and os.getenv(folder_env_ref) != folder_env_path:
+                raise IOError(f"wrong folder path: {folder_env_path} #")
     except (json.JSONDecodeError, TypeError) as jde:
         logging.error(f"jde:{jde}.")
         msg = "double check your variables, e.g. for misspelling like 'FOLDER_MAP'"

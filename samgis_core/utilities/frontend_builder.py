@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 from pathlib import Path
@@ -26,11 +27,13 @@ def assert_envs(envs_list: ListStr) -> None:
 
     """
     for current_env in envs_list:
-        try:
-            assert current_env is not None and current_env != ""
-        except AssertionError as aex:
-            app_logger.error(f"error on assertion for current_env: {current_env}.")
-            raise aex
+        if not current_env:
+            raise EnvironmentError(f"error on assertion for current_env: {current_env}.")
+        # try:
+        #     assert current_env is not None and current_env != ""
+        # except AssertionError as aex:
+        #     app_logger.error(f"error on assertion for current_env: {current_env}.")
+        #     raise aex
 
 
 def read_std_out_err(std_out_err: str, output_type: str, command: ListStr) -> None:
@@ -161,16 +164,22 @@ def get_installed_node():
     if not (node_dir and Path(node_dir).exists() and Path(node_dir).is_dir()):
         app_logger.error(f"node_dir:{node_dir} not found.")
         node_dir_env = os.getenv("NODE_DIR_PARENT")
-        assert node_dir_env is not None and node_dir_env != "", "NODE_DIR_PARENT/NODE_DIR env variable not found."
+        # assert node_dir_env is not None and node_dir_env != "", "NODE_DIR_PARENT/NODE_DIR env variable not found."
+        logging.warning(f"node_dir_env: {type(node_dir_env)}, {node_dir_env} #")
+        if node_dir_env is None or node_dir_env == "":
+            raise ValueError("NODE_DIR_PARENT/NODE_DIR env variable not found.")
         node_dir_parent = Path(os.getenv("NODE_DIR_PARENT"))
         app_logger.error(f"try with '{node_dir_parent}' ...")
-        assert node_dir_parent.exists() and node_dir_parent.is_dir(), "node_dir_parent not found"
+        if not (node_dir_parent.exists() and node_dir_parent.is_dir()):
+            raise FileNotFoundError("node_dir_parent not found")
         list_node_folders = [f.path for f in os.scandir(node_dir_parent) if f.is_dir()]
         list_node_folders.sort()
-        assert isinstance(list_node_folders, list) and len(list_node_folders) > 0, "no node folders found."
+        if not isinstance(list_node_folders, list) or len(list_node_folders) < 1:
+            raise FileNotFoundError("no node folders found.")
         node_dir = list_node_folders.pop()
     node_dir_bin = Path(node_dir) / "bin"
-    assert node_dir_bin.exists() and node_dir_bin.is_dir(), f"node's bin not found or not a directory: {node_dir}."
+    if not (node_dir_bin.exists() and node_dir_bin.is_dir()):
+        raise FileNotFoundError(f"node's bin not found or not a directory: {node_dir}.")
     return node_dir_bin
 
 

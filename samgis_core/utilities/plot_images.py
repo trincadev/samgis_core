@@ -30,15 +30,17 @@ def helper_imshow_output_expected(
         tuple of matplotlib Figure, Axes
 
     """
-    n = len(img_list)
-    assert len(titles_list) == n
+    n_img = len(img_list)
+    n_titles = len(titles_list)
+    if n_titles != n_img:
+        raise ValueError(f"wrong number of titles ({n_titles}) vs number of img ({n_img})")
     fig, ax = plt.subplot_mosaic([
         titles_list
-    ], figsize=(n * plot_size, plot_size))
+    ], figsize=(n_img * plot_size, plot_size))
 
     for title, img in zip(titles_list, img_list):
         ax[title].imshow(img, cmap=cmap)
-        ax[title].legend()
+        ax[title].legend(title)
     if show:
         if debug:
             plt.pause(0.01)
