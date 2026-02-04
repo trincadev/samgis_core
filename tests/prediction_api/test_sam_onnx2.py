@@ -32,11 +32,6 @@ expected_hash_list = [
     b'14pi7a6FGQgFN4Zne9uRXAg1vCt6QA/pqQrrLQ66weo=',
     b'5Y00HY9+gZe15U3XMLh+U/Zl5qa0tRuKHrzkZniZu7U='
 ]
-
-
-def check_hash(actual_hash: str | bytes, expected_hash: bytes):
-    if actual_hash != expected_hash:
-        raise ValueError(f"wrong hash: '{actual_hash}' != '{expected_hash}'")
     
 
 
@@ -57,13 +52,13 @@ class TestSegmentAnythingONNX2(unittest.TestCase):
     def test_preprocess_image_ndarray(self):
         resized_image = instance_sam_onnx.preprocess_image(np_img)
         hash_img = hash_calculate(np.array(resized_image), is_file=False)
-        check_hash(hash_img, b'uP7LGlpKJ4xc+akIN+maJGHprdpVocpNtOVYCmAJzbw=')
+        helper_assertions.check_hash(hash_img, b'uP7LGlpKJ4xc+akIN+maJGHprdpVocpNtOVYCmAJzbw=')
 
     def test_preprocess_image_pil(self):
         input_pil_test = Image.fromarray(np_img)
         resized_image = instance_sam_onnx.preprocess_image(input_pil_test)
         hash_img = hash_calculate(np.array(resized_image), is_file=False)
-        check_hash(hash_img, b'uP7LGlpKJ4xc+akIN+maJGHprdpVocpNtOVYCmAJzbw=')
+        helper_assertions.check_hash(hash_img, b'uP7LGlpKJ4xc+akIN+maJGHprdpVocpNtOVYCmAJzbw=')
 
     def test_encoder(self):
         img = image_embedding["image_embedding"]
@@ -88,7 +83,7 @@ class TestSegmentAnythingONNX2(unittest.TestCase):
         # output_mask.save(TEST_EVENTS_FOLDER / "samexporter_predict" / "teglio" / "teglio_1280x960_mask2.png")
         expected_mask = np.array(mask_pil)
         hash_expected_mask = hash_calculate(expected_mask, is_file=False)
-        check_hash(hash_expected_mask, b'NDp9r4fI99jqt3aQnkeez8b0/w24tdGIWXKVz6qRWUU=')
+        helper_assertions.check_hash(hash_expected_mask, b'NDp9r4fI99jqt3aQnkeez8b0/w24tdGIWXKVz6qRWUU=')
         all_close_perc = 0.85
         try:
             helper_assertions.assert_sum_difference_less_than(output_mask_np, expected_mask, rtol=all_close_perc)

@@ -23,7 +23,8 @@ class TestCreateFoldersIfNotExists(unittest.TestCase):
     def test_stats_pathname(self):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
-            assert create_folders_if_not_exists.stats_pathname(tmp_dir)
+            if not create_folders_if_not_exists.stats_pathname(tmp_dir):
+                raise FileNotFoundError(f"temp folder not found: {tmp_dir}!")
 
     def test_create_folder_if_not_exists(self):
         tmp_subfolder = Path(tmp) / f"{random.random()}"

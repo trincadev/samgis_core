@@ -7,6 +7,7 @@ from PIL import Image
 from samgis_core.utilities import plot_images
 from samgis_core.utilities.utilities import hash_calculate
 from tests import TEST_EVENTS_FOLDER
+from tests.prediction_api import helper_assertions
 
 
 folder = TEST_EVENTS_FOLDER / "samexporter_predict" / "colico"
@@ -26,7 +27,7 @@ class TestPlotImages(unittest.TestCase):
             saved_img = Image.open(tmp_file.name)
             np_saved_img = np.array(saved_img)
             hash_output = hash_calculate(np_saved_img, is_file=False)
-            assert hash_output == b'YRrEKeLZNTqxxHdzrEFpASiFQPhngRetOtDeu1D5Z8I='
+            helper_assertions.check_hash(hash_output, b'YRrEKeLZNTqxxHdzrEFpASiFQPhngRetOtDeu1D5Z8I=')
 
     def test_imshow_raster(self):
         """supported matplotlib backend to set in plt.rcParams["backend"]:
@@ -47,7 +48,7 @@ class TestPlotImages(unittest.TestCase):
             saved_img = Image.open(tmp_file.name)
             np_saved_img = np.array(saved_img)
             hash_output = hash_calculate(np_saved_img, is_file=False)
-            assert hash_output == b'1nEoSvWN7cMRjkaw1pVF6UyygNTYWIUedlDmkKSi0eY='
+            helper_assertions.check_hash(hash_output, b'1nEoSvWN7cMRjkaw1pVF6UyygNTYWIUedlDmkKSi0eY=')
 
 
 if __name__ == '__main__':

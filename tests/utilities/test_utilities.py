@@ -2,6 +2,8 @@ import unittest
 
 import numpy as np
 
+from tests.prediction_api import helper_assertions
+
 
 class TestUtilities(unittest.TestCase):
     def test_hash_calculate(self):
@@ -67,10 +69,10 @@ class TestUtilities(unittest.TestCase):
         arr[4:7, 2:8] = 89
         normalized = normalize_array(arr)
         hash_img = hash_calculate(normalized, is_file=False)
-        assert hash_img == b'UdCAAQI/QcfLG8Hzgivf7FPSegNwQSXEaXX5d0Lg1Z0='
+        helper_assertions.check_hash(hash_img, b'UdCAAQI/QcfLG8Hzgivf7FPSegNwQSXEaXX5d0Lg1Z0=')
         normalized = normalize_array(arr, new_h=1)
         hash_normalized = hash_calculate(normalized, is_file=False)
-        assert hash_normalized == b'CZsH43+hgXZjXTqhzW7Rv4Qd93eHfd7QU7BnObmZUsc='
+        helper_assertions.check_hash(hash_normalized, b'CZsH43+hgXZjXTqhzW7Rv4Qd93eHfd7QU7BnObmZUsc=')
         normalized = normalize_array(arr, new_h=128., type_normalization="float")
         hash_normalized = hash_calculate(normalized, is_file=False)
-        assert hash_normalized == b'+HYPe8utlYKRqrizYPdZUINuIPqv0cIWI1zKa4tscno='
+        helper_assertions.check_hash(hash_normalized, b'+HYPe8utlYKRqrizYPdZUINuIPqv0cIWI1zKa4tscno=')

@@ -68,3 +68,8 @@ def assert_helper_get_raster_inference_with_embedding_from_dict(
         raise ValueError(f'embedding_dict_test_value["resized_size"] should be a tuple, not "{type(embedding_dict_test_value["resized_size"])}"!')
     if embedding_dict_test_value["resized_size"] != expected_resized_size:
         raise ValueError('wrong value for  embedding_dict_test_value["resized_size"]!')
+
+
+def check_hash(actual_hash: str | bytes, expected_hash: bytes):
+    if actual_hash != expected_hash:
+        raise ValueError(f"wrong hash: '{actual_hash}' != '{expected_hash}'")
