@@ -59,17 +59,25 @@ class TestSamOnnx2Inference(unittest.TestCase):
                 ["output_mask", "expected"],
                 show=True, debug=True)
             raise ae
-        assert len_inference_out == 1
+        if len_inference_out != 1:
+            raise ValueError(f"Wrong number of inference masks: {len_inference_out}!")
 
-        assert len(embedding_dict_test) == 1
-        assert name_key in list(embedding_dict_test.keys())
+        if len(embedding_dict_test) != 1:
+            raise ValueError(f"Wrong number of inference output objects: {len(embedding_dict_test)}!")
+        if name_key not in list(embedding_dict_test.keys()):
+            raise ValueError(f"{name_key} not in embedding_dict_test!")
         embedding_dict_test_value = embedding_dict_test[name_key]
         image_embedding = embedding_dict_test_value["image_embedding"]
-        assert isinstance(image_embedding, np.ndarray)
-        assert image_embedding.shape == (1, 256, 64, 64)
-        assert isinstance(embedding_dict_test_value["original_size"], tuple)
-        assert isinstance(embedding_dict_test_value["resized_size"], tuple)
-        assert embedding_dict_test_value["resized_size"] == (1024, 768)
+        if not isinstance(image_embedding, np.ndarray):
+            raise ValueError(f"image_embedding should be an numpy ndarray, not {type(image_embedding)}!")
+        if image_embedding.shape != (1, 256, 64, 64):
+            raise ValueError(f"wrong array shape: '{image_embedding.shape}'!")
+        if not isinstance(embedding_dict_test_value["original_size"], tuple):
+            raise ValueError(f'embedding_dict_test_value["original_size"] should be a tuple, not {type(embedding_dict_test_value["original_size"])}!')
+        if not isinstance(embedding_dict_test_value["resized_size"], tuple):
+            raise ValueError(f'embedding_dict_test_value["resized_size"] should be a tuple, not {type(embedding_dict_test_value["resized_size"])}!')
+        if embedding_dict_test_value["resized_size"] != (1024, 768):
+            raise ValueError(f'wrong resized size: {embedding_dict_test_value["resized_size"]}!')
 
     def test_get_raster_inference_with_embedding_from_dict_empty_dict_not_mocked(self):
         from pathlib import Path
@@ -101,16 +109,17 @@ class TestSamOnnx2Inference(unittest.TestCase):
                     )
                     files = [item.name for item in Path(tmp_dir).glob("*")]
                     for file in files:
-                        assert "mask_embedding_key_test" in file
-                        assert "_n" in file
-                        assert ".png" in file
+                        if not ("mask_embedding_key_test" in file and "_n" in file and ".png" in file):
+                            raise FileNotFoundError(f"wrong file: {file}!")
                 helper_assertions.assert_sum_difference_less_than(output_mask, mask, rtol=allclose_perc)
-                assert len_inference_out == input_output["output"]["n_predictions"]
+                if len_inference_out != input_output["output"]["n_predictions"]:
+                    raise ValueError(f"wrong prediction number: {len_inference_out}!")
                 helper_assertions.assert_helper_get_raster_inference_with_embedding_from_dict(
                     embedding_dict_test, n_keys, f"embedding_key_test{n_keys}"
                 )
                 n_keys += 1
-                assert len(embedding_dict_test) == n_keys-1
+                if len(embedding_dict_test) != n_keys-1:
+                    raise ValueError(f"wrong embedding number: {len(embedding_dict_test)}!")
 
     @patch.object(sam_onnx2, "SegmentAnythingONNX2")
     def test_get_raster_inference(self, segment_anything_onnx_mocked):
@@ -140,10 +149,12 @@ class TestSamOnnx2Inference(unittest.TestCase):
                     model_name=model_name
                 )
                 try:
-                    assert np.array_equal(output_mask, mask)
+                    if not np.array_equal(output_mask, mask):
+                        raise ValueError("output mask isn't what we expected...")
                 except Exception as ex:
                     print(f"k:{k}, ex::{ex}.")
                     test_logger.error(f"k:{k}, ex::{ex}.")
                     allclose_perc = 0.002  # percentage
                     helper_assertions.assert_sum_difference_less_than(output_mask, mask, rtol=allclose_perc)
-                assert len_inference_out == input_output["output"]["n_predictions"]
+                if len_inference_out != input_output["output"]["n_predictions"]:
+                    raise ValueError(f"wrong inference number: {len_inference_out}!")
