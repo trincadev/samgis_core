@@ -1,11 +1,11 @@
 [project]
 name = "samgis_core"
-version = "3.5.0"
+version = "3.5.1"
 description = "SamGIS CORE"
 authors = [{name = "alessandro trinca tornidor", email = "alessandro@trinca.tornidor.com"}]
 license = {text = "MIT license"}
 readme = "README.md"
-requires-python = ">=3.10, <3.14"
+requires-python = ">=3.12, <3.14"
 dependencies = [
     "bson (>=0.5.10,<0.6.0)",
     "numpy (>=2.2.4,<3.0.0)",
@@ -30,9 +30,9 @@ optional = true
 
 [tool.poetry.group.test.dependencies]
 mpld3 = "^0.5.10"
-pytest = "^8.3.5"
-pytest-cov = "^6.0.0"
-rasterio = "^1.4.3"
+pytest = "^9.0.2"
+pytest-cov = "^7.0.0"
+rasterio = "^1.5.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
