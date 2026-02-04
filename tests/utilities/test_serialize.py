@@ -27,7 +27,7 @@ class TestSerialize(unittest.TestCase):
         self.assertDictEqual(serialize(d1), dict())
 
         # test: serialize nd.float*, number as key => str
-        np_int_4 = np.asarray([87], dtype=np.integer)[0]
+        np_int_4 = np.asarray([87], dtype=np.int64)[0]
         d2 = {"b": np.float32(45.0), 3: 33, 1.56: np_int_4, 3.5: 44.0, "d": "b", "tuple": (1, 2)}
         expected_d2 = {
             'b': 45.0,

@@ -2,6 +2,7 @@ import unittest
 
 import numpy as np
 from PIL import Image
+from onnxruntime.capi.onnxruntime_pybind11_state import InvalidArgument
 
 from samgis_core import MODEL_FOLDER
 from samgis_core.prediction_api.sam_onnx2 import SegmentAnythingONNX2
@@ -33,6 +34,12 @@ expected_hash_list = [
 ]
 
 
+def check_hash(actual_hash: str | bytes, expected_hash: bytes):
+    if actual_hash != expected_hash:
+        raise ValueError(f"wrong hash: '{actual_hash}' != '{expected_hash}'")
+    
+
+
 class TestSegmentAnythingONNX2(unittest.TestCase):
     def test_apply_coords(self):
         from samgis_core.prediction_api import sam_onnx2
@@ -40,8 +47,8 @@ class TestSegmentAnythingONNX2(unittest.TestCase):
         onnx_coords = np.array([[[321., 230.], [0., 0.]]])
         output_coords = sam_onnx2.apply_coords(onnx_coords, image_embedding)
         np.testing.assert_array_equal(
-            x=output_coords,
-            y=np.array([[[256.8, 184.], [0., 0.]]], dtype=np.float32),
+            actual=output_coords,
+            desired=np.array([[[256.8, 184.], [0., 0.]]], dtype=np.float32),
             verbose=True,
             strict=True,
             err_msg="Arrays are not equal"
@@ -50,18 +57,20 @@ class TestSegmentAnythingONNX2(unittest.TestCase):
     def test_preprocess_image_ndarray(self):
         resized_image = instance_sam_onnx.preprocess_image(np_img)
         hash_img = hash_calculate(np.array(resized_image), is_file=False)
-        assert hash_img == b'uP7LGlpKJ4xc+akIN+maJGHprdpVocpNtOVYCmAJzbw='
+        check_hash(hash_img, b'uP7LGlpKJ4xc+akIN+maJGHprdpVocpNtOVYCmAJzbw=')
 
     def test_preprocess_image_pil(self):
         input_pil_test = Image.fromarray(np_img)
         resized_image = instance_sam_onnx.preprocess_image(input_pil_test)
         hash_img = hash_calculate(np.array(resized_image), is_file=False)
-        assert hash_img == b'uP7LGlpKJ4xc+akIN+maJGHprdpVocpNtOVYCmAJzbw='
+        check_hash(hash_img, b'uP7LGlpKJ4xc+akIN+maJGHprdpVocpNtOVYCmAJzbw=')
 
     def test_encoder(self):
         img = image_embedding["image_embedding"]
-        assert image_embedding["original_size"] == (1280, 960)
-        assert image_embedding["resized_size"] == (1024, 768)
+        if image_embedding["original_size"] != (1280, 960):
+            raise ValueError("wrong original_size!")
+        if image_embedding["resized_size"] != (1024, 768):
+            raise ValueError("wrong resized_size")
         hash_img = hash_calculate(np.array(img), is_file=False)
         self.assertIn(hash_img, expected_hash_list)
 
@@ -79,7 +88,7 @@ class TestSegmentAnythingONNX2(unittest.TestCase):
         # output_mask.save(TEST_EVENTS_FOLDER / "samexporter_predict" / "teglio" / "teglio_1280x960_mask2.png")
         expected_mask = np.array(mask_pil)
         hash_expected_mask = hash_calculate(expected_mask, is_file=False)
-        assert hash_expected_mask == b'NDp9r4fI99jqt3aQnkeez8b0/w24tdGIWXKVz6qRWUU='
+        check_hash(hash_expected_mask, b'NDp9r4fI99jqt3aQnkeez8b0/w24tdGIWXKVz6qRWUU=')
         all_close_perc = 0.85
         try:
             helper_assertions.assert_sum_difference_less_than(output_mask_np, expected_mask, rtol=all_close_perc)
@@ -92,16 +101,16 @@ class TestSegmentAnythingONNX2(unittest.TestCase):
             raise ae
 
     def test_encode_predict_masks_ex1(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             try:
                 np_input = np.zeros((10, 10))
                 instance_sam_onnx.encode(np_input)
-            except Exception as e:
-                test_logger.error(f"e:{e}.")
-                msg = "[ONNXRuntimeError] : 2 : INVALID_ARGUMENT : Invalid rank for input: input_image "
-                msg += "Got: 2 Expected: 3 Please fix either the inputs or the model."
-                assert str(e) == msg
-                raise e
+            except ValueError as ve:
+                test_logger.error(f"ValueError: '{ve}'")
+                msg = "operands could not be broadcast together with shapes (1024,1024) (3,) "
+                if str(object=ve) != msg:
+                    return "wrong exception message, DON'T raise the ValueError() exception to let it fail the test!"
+                raise ve
 
     def test_encode_predict_masks_ex2(self):
         wrong_prompt = [{
@@ -119,5 +128,6 @@ class TestSegmentAnythingONNX2(unittest.TestCase):
                 instance_sam_onnx.predict_masks(embedding, wrong_prompt)
             except IndexError as ie:
                 test_logger.error(ie)
-                assert str(ie) == "list index out of range"
+                if str(ie) != "list index out of range":
+                    raise ValueError("wrong exception message!")
                 raise ie

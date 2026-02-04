@@ -27,7 +27,8 @@ def assert_sum_difference_less_than(a: np.ndarray, b: np.ndarray, rtol=1e-05, **
     try:
         print(f"absolute_value:{absolute_count}, relative_count:{relative_count}, rtol:{rtol}.")
         test_logger.info(f"absolute_value:{absolute_count}, relative_count:{relative_count}, rtol:{rtol}.")
-        assert relative_count < rtol
+        if relative_count >= rtol:
+            raise ValueError(f"wrong relative count: {relative_count} >= {rtol}.")
     except AssertionError as ae:
         msg = f"""Mismatched elements: {absolute_count} / {a.size} ({relative_count:.02f}),
         Max absolute difference: {rtol*a.size},
