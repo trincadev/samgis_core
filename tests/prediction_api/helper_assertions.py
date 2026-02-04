@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 
 from samgis_core.utilities.plot_images import helper_imshow_output_expected
@@ -7,8 +8,10 @@ from tests import test_logger
 def count_sum_difference_less_than(a: np.ndarray, b: np.ndarray, **kwargs) -> tuple[float, float]:
     # check that input a, b arguments are numpy arrays because have 'shape' property
     try:
-        a_shape, b_shape = a.shape, b.shape
+        __a_shape, __b_shape = a.shape, b.shape
     except AttributeError as attex:
+        print(f"AttributeError: {attex}!")
+        logging.error(f"AttributeError: {attex}!")
         raise attex
     diff = np.sum(a == b, **kwargs)
     absolute_count = a.size - diff
@@ -49,12 +52,19 @@ def assert_helper_get_raster_inference_with_embedding_from_dict(
         shape_image_embedding=(1, 256, 64, 64),
         expected_resized_size=(1024, 684)
     ):
-    assert len(embedding_dict_test) == n_keys
-    assert name_key in list(embedding_dict_test.keys())
+    if len(embedding_dict_test) != n_keys:
+        raise ValueError("wrong number of embedding keys")
+    if name_key not in list(embedding_dict_test.keys()):
+        raise ValueError(f"{name_key} not found in embedding_dict_test keys")
     embedding_dict_test_value = embedding_dict_test[name_key]
     image_embedding = embedding_dict_test_value["image_embedding"]
-    assert isinstance(image_embedding, np.ndarray)
-    assert image_embedding.shape == shape_image_embedding
-    assert isinstance(embedding_dict_test_value["original_size"], tuple)
-    assert isinstance(embedding_dict_test_value["resized_size"], tuple)
-    assert embedding_dict_test_value["resized_size"] == expected_resized_size
+    if not isinstance(image_embedding, np.ndarray):
+        raise ValueError(f"image_embedding should be an ndarray, not {type(image_embedding)}!")
+    if image_embedding.shape != shape_image_embedding:
+        raise ValueError(f"wrong shape: {image_embedding.shape}!")
+    if not isinstance(embedding_dict_test_value["original_size"], tuple):
+        raise ValueError(f'embedding_dict_test_value["original_size"] should be a tuple, not "{type(embedding_dict_test_value["original_size"])}"!')
+    if not isinstance(embedding_dict_test_value["resized_size"], tuple):
+        raise ValueError(f'embedding_dict_test_value["resized_size"] should be a tuple, not "{type(embedding_dict_test_value["resized_size"])}"!')
+    if embedding_dict_test_value["resized_size"] != expected_resized_size:
+        raise ValueError('wrong value for  embedding_dict_test_value["resized_size"]!')
