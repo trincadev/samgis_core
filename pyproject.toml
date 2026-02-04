@@ -1,6 +1,6 @@
 [project]
 name = "samgis_core"
-version = "3.5.2"
+version = "3.5.3"
 description = "SamGIS CORE"
 authors = [{name = "alessandro trinca tornidor", email = "alessandro@trinca.tornidor.com"}]
 license = {text = "MIT license"}
@@ -9,7 +9,7 @@ requires-python = ">=3.12, <3.14"
 dependencies = [
     "bson (>=0.5.10,<0.6.0)",
     "numpy (>=2.2.4,<3.0.0)",
-    "pillow (>=12.1.0,<13.0.0)",
+    "pillow (>=11.0.0,<12.0.0)",
     "python-dotenv (>=1.0.1,<2.0.0)",
     "structlog (>=25.2.0,<26.0.0)"
 ]
